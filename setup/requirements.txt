@@ -1,0 +1,12 @@
+boto3
+fastparquet
+graphviz
+hyperopt
+jupyter
+keras
+mlflow==2.12.1
+pandas
+scikit-learn
+seaborn
+tensorflow[and-cuda]==2.17
+wandb==0.17.4
