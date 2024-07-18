@@ -22,12 +22,17 @@ services:
             - .env
         volumes:
             - ../training/airflow/:/usr/local/airflow
-            # - ../training/airflow/dags:/usr/local/airflow/dags
-            # - ../training/airflow/logs:/usr/local/airflow/logs
-            # - ../training/airflow/plugins:/usr/local/airflow/plugins
-            # - ../training/airflow/includes:/usr/local/airflow/includes
             - ./scripts:/usr/local/airflow/scripts
-       
+        deploy:
+            resources:
+                limits:
+                    memory: 12GB
+                reservations:
+                    devices:
+                        - driver: nvidia
+                          count: 1
+                          capabilities: [gpu]
+                    memory: 8GB
 
     webserver:
         build: .
@@ -40,10 +45,6 @@ services:
             - .env
         volumes:
             - ../training/airflow/:/usr/local/airflow
-            # - ../training/airflow/dags:/usr/local/airflow/dags
-            # - ../training/airflow/logs:/usr/local/airflow/logs
-            # - ../training/airflow/plugins:/usr/local/airflow/plugins
-            # - ../training/airflow/includes:/usr/local/airflow/includes
             - ./scripts:/usr/local/airflow/scripts
 
         user: "root"

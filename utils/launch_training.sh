@@ -8,5 +8,6 @@ if [ ! -f ".env" ]; then
     exit 2
 fi
 
+rm ../training/airflow/*pid
 docker compose up -d
 echo "Done. Now point your browser to http://localhost:8080 to view the Airflow UI and launch the DAGs"

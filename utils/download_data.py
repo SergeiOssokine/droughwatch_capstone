@@ -24,8 +24,7 @@ logger.setLevel("CRITICAL")
 install()
 
 data_url = "https://storage.googleapis.com/wandb_datasets/dw_train_86K_val_10K.zip"
-data_url = "https://download.brainvoyager.com/bv/data/BrainTutorData.zip"
-filepath = "./training/data/data.zip"
+filepath = "./training/airflow/data/data.zip"
 
 
 def main(
@@ -69,7 +68,7 @@ def main(
 
     logger.info(f"Downloaded {filename}")
     if extract:
-        dest = "./training/data"
+        dest = os.path.dirname(filepath)
         logger.info(f"Extracting archive to {dest}")
         with zipfile.ZipFile(filepath, "r") as zip_ref:
             zip_ref.extractall(dest)
