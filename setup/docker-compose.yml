@@ -10,6 +10,8 @@ services:
             interval: 5s
             retries: 5
         restart: always
+        networks:
+          - app-network
 
     scheduler:
         build: .
@@ -33,6 +35,8 @@ services:
                           count: 1
                           capabilities: [gpu]
                     memory: 8GB
+        networks:
+          - app-network
 
     webserver:
         build: .
@@ -55,8 +59,11 @@ services:
             interval: 30s
             timeout: 30s
             retries: 3
+        networks:
+          - app-network
 
-    mlflow:	
+    mlflow:
+      container_name: mlflow-server
       build:
         context: .
         dockerfile: mlflow.dockerfile
@@ -64,5 +71,12 @@ services:
         - 5012:5012
       volumes:
         - "${PWD}/../training/airflow/mlflow:/home/mlflow/"
+      networks:
+        - app-network
+
 volumes:
   postgres-db-volume:
+
+networks:
+  app-network:
+    driver: bridge
