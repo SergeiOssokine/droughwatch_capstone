@@ -4,9 +4,10 @@ graphviz
 hyperopt
 jupyter
 keras
-mlflow==2.12.1
+mlflow==2.14.2
 pandas
 scikit-learn
 seaborn
-tensorflow[and-cuda]==2.15.1
+tensorflow[and-cuda]
 wandb==0.17.4
+hydra-core

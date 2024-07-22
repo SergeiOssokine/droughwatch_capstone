@@ -2,13 +2,14 @@ FROM apache/airflow:latest-python3.10
 
 USER root
 RUN apt-get update
-RUN apt-get -y install procps
+# We need these later
+RUN apt-get -y install procps git
 USER airflow
 ENV AIRFLOW_HOME=/usr/local/airflow
 
 
 RUN pip install -U pip
-RUN pip install uv 
+RUN pip install -U  uv 
 
 COPY [ "requirements.txt",  "./" ]
 

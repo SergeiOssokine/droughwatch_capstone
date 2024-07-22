@@ -156,7 +156,12 @@ def parse_tf_record(
     example = tf.io.parse_single_example(serialized_example, features)
     bandlist = []
     for key in keylist:
-        bandlist.append(tf.io.parse_tensor(example[key], out_type=tf.float32))
+        bandlist.append(
+            tf.reshape(
+                tf.io.parse_tensor(example[key], out_type=tf.float32),
+                (IMG_DIM, IMG_DIM, 1),
+            )
+        )
 
     image = tf.concat(bandlist, -1)
     label = tf.cast(example["label"], tf.int32)
