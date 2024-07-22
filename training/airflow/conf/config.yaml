@@ -1,0 +1,6 @@
+defaults:
+  - logging: default
+  - model: default
+  - features: default
+
+#logging: wandb

@@ -1,0 +1,2 @@
+# A reasonable set of features for baseline: RGB+NIR
+list: ["B2", "B3", "B4", "B5"]

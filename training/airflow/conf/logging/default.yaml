@@ -1,0 +1,3 @@
+defaults:
+  - logging_base
+style: wandb

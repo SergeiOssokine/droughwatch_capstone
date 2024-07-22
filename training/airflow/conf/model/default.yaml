@@ -1,0 +1,4 @@
+# A quick default model
+learning_rate: 0.0005
+epochs: 10
+batch_size: 64

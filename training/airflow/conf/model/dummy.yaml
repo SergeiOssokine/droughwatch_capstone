@@ -1,0 +1,4 @@
+# A dummy model that will not be trained at all
+learning_rate: 0.0005
+epochs: -1
+batch_size: 64
