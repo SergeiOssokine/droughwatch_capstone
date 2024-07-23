@@ -44,7 +44,7 @@ def train_ndvi():
     Train the baseline model on NDVI as the only feature.
     Useful as NDVI is supposed to be a good measure of vegetation.
     """
-    train_model({"features.list": ["NDVI"]})
+    train_model(override_args={"training.features.list": ["NDVI"]})
 
 
 with DAG(

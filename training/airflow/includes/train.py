@@ -20,9 +20,11 @@ import logging
 import os
 
 import keras
+import parse_data
 from keras import layers
 
-from . import parse_data
+# from . import parse_data
+
 
 tf.compat.v1.set_random_seed(23)
 
@@ -38,11 +40,12 @@ install()
 
 # default image side dimension (65 x 65 square)
 IMG_DIM = 65
-# use 7 out of 10 bands for now
+# 4 possible classes
 NUM_CLASSES = 4
-
 NUM_TRAIN = 500
 NUM_VAL = 320
+
+PROJECT_NAME = "droughtwatch_capstone"
 
 
 def get_dataset(filelist, batch_size, buffer_size, keylist=["B4", "B3", "B2"]):
@@ -116,21 +119,23 @@ def train_model(
     model_config="default",
     features_config="default",
     logging_config="default",
-    **override_args,
+    override_args={},
 ):
     initialize_config_dir(
         version_base=None, config_dir=CONFIG_PATH, job_name="train_model"
     )
+
     cfg = compose(
         config_name="config",
         overrides=[
-            f"model={model_config}",
-            f"features={features_config}",
-            f"logging={logging_config}",
+            f"training/model={model_config}",
+            f"training/features={features_config}",
+            f"training/logging={logging_config}",
+            *[f"{k}={v}" for k, v in override_args.items()],
         ],
-        *[f"{k}={v}" for k, v in override_args.items()],
     )
-    train_cnn(cfg)
+
+    train_cnn(cfg.training)
 
 
 def generate_random_id(N=4):
@@ -141,9 +146,6 @@ def generate_random_id(N=4):
 
 
 def train_cnn(cfg: DictConfig):
-    # load training data in TFRecord format
-    filelist = glob.glob("data/droughtwatch_data/train/processed_part*")
-
     buffer_size = NUM_TRAIN
     # Model related settings
     keylist = cfg.features.list
@@ -151,13 +153,16 @@ def train_cnn(cfg: DictConfig):
     epochs = cfg.model.epochs
     # Get logging style and options
     logging_style = cfg.logging.style
-    print(cfg)
 
+    # load training data in TFRecord format
+    train_data_path = cfg.data.train_data
+    filelist = glob.glob(os.path.join(train_data_path, "processed_part*"))
     train_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
-    filelist = glob.glob("data/droughtwatch_data/val/processed_part*")
+
+    val_data_path = cfg.data.val_data
+    filelist = glob.glob(os.path.join(val_data_path, "processed_part*"))
     buffer_size = NUM_VAL
     val_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
-    PROJECT_NAME = "droughtwatch_capstone"
 
     model = construct_baseline_model(cfg)
 
@@ -188,7 +193,7 @@ def train_cnn(cfg: DictConfig):
         # Do local MLFlow logging
         mlflow.set_tracking_uri("http://mlflow-server:5012")
         mlflow.set_experiment(PROJECT_NAME)
-        run = mlflow.start_run(run_id=f"{cfg.model.name}_{generate_random_id()}")
+        run = mlflow.start_run(run_name=f"{cfg.model.name}_{generate_random_id()}")
         callbacks = [mlflow.keras.callback.MlflowCallback(run)]
 
     if epochs > 0:
@@ -205,4 +210,8 @@ def train_cnn(cfg: DictConfig):
 
 
 if __name__ == "__main__":
-    train_model(model_config="default", logging_config="mlflow")
+    train_model(
+        model_config="default",
+        logging_config="mlflow",
+        # override_args={"training.features.list": ["NDMI"]},
+    )

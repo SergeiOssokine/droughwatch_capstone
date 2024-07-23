@@ -1,0 +1,2 @@
+train_data: "/usr/local/airflow/data/droughtwatch_data/train"
+val_data: "/usr/local/airflow/data/droughtwatch_data/val"

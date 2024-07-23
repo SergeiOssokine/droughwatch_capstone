@@ -1,0 +1,21 @@
+# This is the configuration for the entire project.
+# Here one can set and override various settings
+
+# Do not modify the defaults!
+defaults:
+  - training: default 
+  - _self_
+
+# Modify the following settings
+# Note that these _must_ be provided
+# Path relative to top of the repo
+secrets_path: ./setup/.secrets
+
+training:
+  model_registry_s3_bucket: "droughtwatch-capstone-0afd39b0-6a17-4fd2-af8f-181fdd55a09e"
+  logging:
+    style: wandb
+      
+infra:
+  aws_region: us-east-1
+  terraform_ml_inference_state_bucket: "terraform-state-0afd39b0-6a17-4fd2-af8f-181fdd55a09e"

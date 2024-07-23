@@ -1,6 +1,7 @@
 defaults:
   - logging: default
+  - data: default
   - model: default
   - features: default
-
-#logging: wandb
+  - _self_
+model_registry_s3_bucket: ???

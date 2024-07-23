@@ -1,4 +1,0 @@
-defaults:
-  - logging_base
-
-style: mlflow

@@ -272,9 +272,9 @@ def add_derived_features(
     nir_band = data_features["B5"]
     swir_band = data_features["B6"]
     # Calculate NDVI
-    ndvi = (nir_band - r_band) / (r_band + nir_band)
+    ndvi = (nir_band - r_band) / (r_band + nir_band + 1e-7)
     # Calculate NDMI
-    ndmi = (nir_band - swir_band) / (nir_band + swir_band)
+    ndmi = (nir_band - swir_band) / (nir_band + swir_band + 1e-7)
     # Calculate EVI
     G = 2.5
     c1 = 6
