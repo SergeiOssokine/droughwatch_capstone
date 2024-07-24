@@ -1,0 +1,5 @@
+# Postgres minimal config.
+# NB: Do not deploy this in production!
+POSTGRES_USER: airflow
+POSTGRES_PASSWORD: airflow
+POSTGRES_DB: airflow

@@ -3,7 +3,8 @@
 
 # Do not modify the defaults!
 defaults:
-  - training: default 
+  - training: default
+  - infra: default
   - _self_
 
 # Modify the following settings

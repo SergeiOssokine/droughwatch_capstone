@@ -1,0 +1,20 @@
+# Minimal Airflow config. Uses a local executor which will run in the
+# scheduler container. This file is intended to be combined with postgres config
+# in a .env file which is passed to the docker compose command. Thus shell subs are
+# valid
+AIRFLOW__CORE__EXECUTOR: LocalExecutor
+AIRFLOW__SCHEDULER__SCHEDULER_HEARTBEAT_SEC: 10
+
+AIRFLOW__CORE__SQL_ALCHEMY_CONN: postgresql+psycopg2://${..postgres.POSTGRES_USER}:${..postgres.POSTGRES_PASSWORD}@postgres:5432/${..postgres.POSTGRES_DB}
+AIRFLOW_CONN_METADATA_DB: postgres+psycopg2://airflow:airflow@postgres:5432/airflow
+AIRFLOW_VAR__METADATA_DB_SCHEMA: airflow
+
+_AIRFLOW_WWW_USER_CREATE: True
+_AIRFLOW_WWW_USER_USERNAME: airflow
+_AIRFLOW_WWW_USER_PASSWORD: airflow
+
+AIRFLOW__CORE__DAGS_ARE_PAUSED_AT_CREATION: True
+AIRFLOW__CORE__LOAD_EXAMPLES: False
+
+# Allow password authentication for simple REST API interaction
+AIRFLOW__API__AUTH_BACKENDS: airflow.api.auth.backend.basic_auth

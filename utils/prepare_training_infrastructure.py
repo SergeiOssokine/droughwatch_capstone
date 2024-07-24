@@ -1,7 +1,7 @@
 import logging
 import os
 import subprocess as sp
-from typing import Dict, List
+from typing import Dict, List, Union
 
 import boto3
 from hydra import compose, initialize
@@ -19,7 +19,18 @@ logger.setLevel("INFO")
 install()
 
 
-def dict_generator(adict, pre: List = None):
+def dict_generator(adict: Union[Dict, List, str, float], pre: List = None):
+    """Recursively traverse a nested dict and return a list with a
+    path to each value. See  here:
+    https://stackoverflow.com/a/73430155/22288495
+
+    Args:
+        adict (Union[Dict,List,str,float]): The current item being traversed
+        pre (List, optional): Current path. Defaults to None.
+
+    Yields:
+        List: The full path to every item
+    """
     pre = pre[:] if pre else []
     if isinstance(adict, dict):
         for key, value in adict.items():
@@ -80,6 +91,23 @@ def make_model_registry_bucket(cfg: DictConfig) -> None:
     logger.info("Creation successful")
 
 
+def assemble_env_file(cfg: DictConfig) -> None:
+    logger.info("Assembling the .env file needed to configure Airflow docker")
+    postgres_config = cfg.infra.training.postgres
+    airflow_config = cfg.infra.training.airflow
+
+    # Note: the order of writing is important,
+    # since airflow config has references to variables
+    # defined in postgres
+    with open("./setup/.env", "w") as fw:
+        for k, v in postgres_config.items():
+            fw.write(f"{k}={v}\n")
+        for k, v in airflow_config.items():
+            fw.write(f"{k}={v}\n")
+
+    logger.info(f"Done. File created in {os.path.abspath('./setup/.env')}")
+
+
 if __name__ == "__main__":
     pth = "../setup/conf"
     logger.info(f"Reading the top-level configuration in {os.path.abspath(pth)}")
@@ -90,7 +118,7 @@ if __name__ == "__main__":
 
     logger.info("The following is the complete configuration of the project")
     console = Console()
-    syntax = Syntax(OmegaConf.to_yaml(cfg), "yaml", theme="ansi_light")
+    syntax = Syntax(OmegaConf.to_yaml(cfg, resolve=True), "yaml", theme="ansi_light")
     console.print(syntax)
     logger.info("Validating the configuration")
     validate_dict(cfg)
@@ -98,6 +126,9 @@ if __name__ == "__main__":
 
     # Create bucket for model registry
     make_model_registry_bucket(cfg)
+
+    # Assemble the .env file for the docker-compose stack
+    assemble_env_file(cfg)
 
     # Append the secrets to the env file
     secrets = cfg.secrets_path
