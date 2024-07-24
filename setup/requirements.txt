@@ -1,13 +1,15 @@
 boto3
 fastparquet
 graphviz
+hydra-core
 hyperopt
 jupyter
 keras
 mlflow==2.14.2
+onnxruntime
 pandas
 scikit-learn
 seaborn
 tensorflow[and-cuda]
+tf2onnx
 wandb==0.17.4
-hydra-core

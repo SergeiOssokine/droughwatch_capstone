@@ -25,6 +25,7 @@ services:
         volumes:
             - ../training/airflow/:/usr/local/airflow
             - ./scripts:/usr/local/airflow/scripts
+            - ./conf:/usr/local/airflow/conf
         deploy:
             resources:
                 limits:
@@ -50,6 +51,7 @@ services:
         volumes:
             - ../training/airflow/:/usr/local/airflow
             - ./scripts:/usr/local/airflow/scripts
+            - ./conf:/usr/local/airflow/conf
 
         user: "root"
         ports:

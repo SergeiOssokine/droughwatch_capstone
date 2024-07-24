@@ -95,15 +95,14 @@ def assemble_env_file(cfg: DictConfig) -> None:
     logger.info("Assembling the .env file needed to configure Airflow docker")
     postgres_config = cfg.infra.training.postgres
     airflow_config = cfg.infra.training.airflow
+    s3_bucket_name = cfg.training.model_registry_s3_bucket
 
-    # Note: the order of writing is important,
-    # since airflow config has references to variables
-    # defined in postgres
     with open("./setup/.env", "w") as fw:
         for k, v in postgres_config.items():
             fw.write(f"{k}={v}\n")
         for k, v in airflow_config.items():
             fw.write(f"{k}={v}\n")
+        fw.write(f"S3_BUCKET_NAME={s3_bucket_name}\n")
 
     logger.info(f"Done. File created in {os.path.abspath('./setup/.env')}")
 

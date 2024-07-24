@@ -13,8 +13,8 @@ build_training:
 		docker build . -t droughtwatch_training \
 	)
 
-launch_training_infra: build_training
-	bash ./utils/launch_training.sh
+setup_training_infra: build_training
+	bash ./utils/setup_training_infra.sh
 
 train_baseline:
 	bash ./training/scripts/launch_baseline.sh

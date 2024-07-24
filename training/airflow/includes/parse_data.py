@@ -205,7 +205,7 @@ def read_raw_tfrecord(
 
 
 def read_processed_tfrecord(
-    path: str,
+    path: List[str] | str,
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
 ) -> Dataset[Tuple[Tensor, Tensor]]:

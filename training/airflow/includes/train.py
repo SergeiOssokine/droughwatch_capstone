@@ -1,10 +1,9 @@
-import secrets
-import string
-from typing import Dict
+from typing import Any, Dict, List
 
 import mlflow
 import numpy as np
 import omegaconf
+import onnx
 import tensorflow as tf
 import wandb
 from hydra import compose, initialize_config_dir
@@ -21,10 +20,9 @@ import os
 
 import keras
 import parse_data
+import tf2onnx
 from keras import layers
-
-# from . import parse_data
-
+from training_utils import generate_random_id
 
 tf.compat.v1.set_random_seed(23)
 
@@ -48,20 +46,48 @@ NUM_VAL = 320
 PROJECT_NAME = "droughtwatch_capstone"
 
 
-def get_dataset(filelist, batch_size, buffer_size, keylist=["B4", "B3", "B2"]):
+def get_dataset(
+    filelist: List[str],
+    batch_size: int,
+    buffer_size: int,
+    keylist: List[str] | None = None,
+    shuffle: bool = True,
+):
+    """Return a batched and shuffled dataset. The input should correspond
+    to processed files.
+
+    Args:
+        filelist (List[str]): List of files comprising the processed TFRecords dataset
+        batch_size (int): The batch size
+        buffer_size (int): The buffer size for shuffling
+        keylist (List[str], optional): The list of features to return.
+        shuffle (bool, optional): Determines if we shuffle the dataset. Defaults to True.
+
+    Returns:
+        tf.Dataset: The dataset ready for training/validation
+    """
+    if keylist is None:
+        # Use RGB bands as default
+        keylist = ["B2", "B3", "B4"]
     dataset = parse_data.read_processed_tfrecord(filelist, keylist=keylist)
-    dataset = dataset.shuffle(buffer_size)
+    if shuffle:
+        dataset = dataset.shuffle(buffer_size)
     dataset = dataset.batch(batch_size)
     return dataset
 
 
-def class_weights() -> Dict[int, int]:
-    # define class weights to account for uneven distribution of classes
-    # distribution of ground truth labels:
-    # 0: ~60%
-    # 1: ~15%
-    # 2: ~15%
-    # 3: ~10%
+def class_weights() -> Dict[int, float]:
+    """Define class weights to account for uneven distribution of classes
+    distribution of ground truth labels:
+    0: ~60%
+    1: ~15%
+    2: ~15%
+    3: ~10%
+
+    Returns:
+        Dict[int, float]: Class weights for evert class
+    """
+
     class_weights = {}
     class_weights[0] = 1.0
     class_weights[1] = 4.0
@@ -71,6 +97,14 @@ def class_weights() -> Dict[int, int]:
 
 
 def construct_baseline_model(cfg: DictConfig) -> keras.Sequential:
+    """Construct a simple baseline CNN
+
+    Args:
+        cfg (DictConfig): The config object which holds learning parameters
+
+    Returns:
+        keras.Sequential: The compiled baseline model
+    """
     num_bands = len(cfg.features.list)
     lr = cfg.model.learning_rate
     model = keras.Sequential(
@@ -112,15 +146,28 @@ def construct_baseline_model(cfg: DictConfig) -> keras.Sequential:
         optimizer=keras.optimizers.Adam(learning_rate=lr),
         metrics=metrics,
     )
+
     return model
 
 
 def train_model(
-    model_config="default",
-    features_config="default",
-    logging_config="default",
-    override_args={},
+    model_config: str = "default",
+    features_config: str = "default",
+    logging_config: str = "default",
+    override_args: Dict[str, Any] | None = None,
 ):
+    """A wrapper around the training code that reads the config
+    and applies any overrides before calling the actual training.
+    See ./setp/conf/training for options.
+    Args:
+        model_config (str, optional): Which model configuration to use. Defaults to "default".
+        features_config (str, optional): Which features to use. Defaults to "default".
+        logging_config (str, optional): What logging to use. Defaults to "default".
+        override_args (Dict[str, Any] | None, optional): Any direct overrides to give. Defaults to None.
+    """
+    if override_args is None:
+        override_args = {}
+
     initialize_config_dir(
         version_base=None, config_dir=CONFIG_PATH, job_name="train_model"
     )
@@ -138,14 +185,16 @@ def train_model(
     train_cnn(cfg.training)
 
 
-def generate_random_id(N=4):
-    res = "".join(
-        secrets.choice(string.ascii_uppercase + string.digits) for i in range(N)
-    )
-    return res
-
-
 def train_cnn(cfg: DictConfig):
+    """Train a baseline CNN model.
+    For the possible settings see setup/conf/training/*
+
+    Args:
+        cfg (DictConfig): All settings
+
+    Raises:
+        NotImplementedError: If experiment tracking style is not supported
+    """
     buffer_size = NUM_TRAIN
     # Model related settings
     keylist = cfg.features.list
@@ -159,13 +208,14 @@ def train_cnn(cfg: DictConfig):
     filelist = glob.glob(os.path.join(train_data_path, "processed_part*"))
     train_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
 
+    # load validation data in TFRecord format
     val_data_path = cfg.data.val_data
     filelist = glob.glob(os.path.join(val_data_path, "processed_part*"))
     buffer_size = NUM_VAL
     val_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
 
     model = construct_baseline_model(cfg)
-
+    run_name = f"{cfg.model.name}_{generate_random_id()}"
     if logging_style == "wandb":
         # Do cloud-based wandb logging
         try:
@@ -176,7 +226,6 @@ def train_cnn(cfg: DictConfig):
             )
             exit(-1)
         wandb.login(key=key)
-        run_name = f"{cfg.model.name}_{generate_random_id()}"
 
         # initialize wandb logging for your project and save your settings
 
@@ -189,12 +238,16 @@ def train_cnn(cfg: DictConfig):
         wf_cfg = wandb.config
         wf_cfg.setdefaults(config)
         callbacks = [WandbMetricsLogger()]
+
     elif logging_style == "mlflow":
         # Do local MLFlow logging
         mlflow.set_tracking_uri("http://mlflow-server:5012")
         mlflow.set_experiment(PROJECT_NAME)
-        run = mlflow.start_run(run_name=f"{cfg.model.name}_{generate_random_id()}")
+        run = mlflow.start_run(run_name=run_name)
         callbacks = [mlflow.keras.callback.MlflowCallback(run)]
+    else:
+        logger.critical(f"Logging style {logging_style} unknown! Exiting")
+        raise NotImplementedError
 
     if epochs > 0:
         history = model.fit(
@@ -206,6 +259,36 @@ def train_cnn(cfg: DictConfig):
         )
     if logging_style == "mlflow":
         mlflow.keras.log_model(model, "artifacts")
+
+    if cfg.model.register:
+        # We want to register this model in the model registry so we can
+        # later use it in production.
+        if logging_style == "mlflow":
+            run_id = run.info.run_id
+            model_uri = f"runs:/{run_id}/model"
+            mlflow.register_model(model_uri=model_uri, name=cfg.model.name)
+
+        # Convert the trained model to ONNX
+        input_layer = tf.keras.layers.Input(batch_shape=model.input_shape)
+        prev_layer = input_layer
+        for layer in model.layers:
+            prev_layer = layer(prev_layer)
+        functional_model = tf.keras.models.Model(
+            inputs=[input_layer], outputs=[prev_layer]
+        )
+
+        # Now convert the Functional model to ONNX
+        input_signature = (
+            tf.TensorSpec(functional_model.input_shape, tf.float32, name="input"),
+        )
+        onnx_model, _ = tf2onnx.convert.from_keras(functional_model, input_signature)
+        mlflow.onnx.log_model(onnx_model, "artifacts-generic")
+        # Upload the model to S3
+        model_s3_path = f"s3://{cfg.model_registry_s3_bucket}/{cfg.model.name}"
+        # onnx.save
+        # Record the S3 path
+        mlflow.log_param("model_s3_path", model_s3_path)
+    if logging_style == "mlflow":
         mlflow.end_run()
 
 
