@@ -1,3 +1,9 @@
+"""Contains routines to serialize and deserialize image data stored initially as
+TFRecords.
+
+The data comes from the droughtwatch WandB benchmark.
+"""
+
 import glob
 import hashlib
 import json
@@ -10,7 +16,7 @@ import tensorflow as tf
 from rich.logging import RichHandler
 from rich.progress import track
 from rich.traceback import install
-from tensorflow import Tensor as Tensor
+from tensorflow import Tensor
 from tensorflow.data import Dataset
 
 # Sets up the logger to work with rich
@@ -84,7 +90,7 @@ def parse_raw_tfrecord(
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
 ) -> Tuple[Dict[str, Tensor], Tensor]:
-    """Parse a single TFRecord file
+    """Parse a single TFRecord file.
 
     Args:
         serialized_example (str): The name of the file
@@ -114,7 +120,7 @@ def parse_raw_tfrecord(
 
 
 def serialize_tensor(tensor: Tensor) -> tf.train.Feature:
-    """Serialize a tensor to bytes
+    """Serialize a tensor to bytes.
 
     Args:
         tensor (Tensor): The tensor to serialize
@@ -128,6 +134,14 @@ def serialize_tensor(tensor: Tensor) -> tf.train.Feature:
 
 
 def serialize_data(element: Tuple[Dict[str, Tensor], Tensor]) -> bytes:
+    """Searilize a single element of the dataset to bytes.
+
+    Args:
+        element (Tuple[Dict[str, Tensor], Tensor]): One element of dataset
+
+    Returns:
+        bytes: The element serialized as an tf.train.Example to bytes
+    """
     data_features = element[0]
     label = element[1]
 
@@ -149,6 +163,16 @@ def parse_tf_record(
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
 ) -> Tuple[Tensor, Tensor]:
+    """Parse a single item from TFRecordDataset.
+
+    Args:
+        serialized_example (str): Name of the file to parse
+        keylist (List[str] | None, optional): The features to add to the return tensor. Defaults to None.
+        features (Dict[str, tf.io.FixedLenFeature] | None, optional): The description of all the features in the file. Defaults to None.
+
+    Returns:
+        Tuple[Tensor, Tensor]: First item is the image tensor with shape [nitems,IMG_DIM,IMG_DIM,number of bands]. Second item is a tensor of one-hot encoded labels.
+    """
     if keylist is None:
         keylist = keylist_processed
     if features is None:
@@ -171,6 +195,16 @@ def parse_tf_record(
 
 
 def veto_missing(x: Dict[str, Tensor], y: Tensor) -> Tensor:
+    """Veto all blank images. An image is defined as blank if the maximum across all
+    bands is below some threshold, which we take to be 1/255.
+
+    Args:
+        x (Dict[str, Tensor]): Keys are bands, values are corresponding tensors
+        y (Tensor): The labels
+
+    Returns:
+        Tensor: The max bigger than threshold
+    """
     bands = []
     for _, value in x.items():
         bands.append(value)
@@ -183,8 +217,8 @@ def read_raw_tfrecord(
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
 ) -> Dataset[Tuple[Dict[str, Tensor], Tensor]]:
-    """Read one or many raw datasets. Will normalize the data and
-    remove any blank images.
+    """Read one or many raw datasets. Will normalize the data and remove any blank
+    images.
 
     Args:
         path (str | List[str]): The path to the raw data
@@ -209,9 +243,9 @@ def read_processed_tfrecord(
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
 ) -> Dataset[Tuple[Tensor, Tensor]]:
-    """Read one or many of the processed data files and convert them to format,
-    suitable to training. In particular we have Tensors with shape
-    (IMG_DIM,IMG_DIM,N_FEATURES) where N_FEATURES is len(keylist)
+    """Read one or many of the processed data files and convert them to format, suitable
+    to training. In particular we have Tensors with shape (IMG_DIM,IMG_DIM,N_FEATURES)
+    where N_FEATURES is len(keylist)
 
     Args:
         path (str | List[str]): The path to the processed data.
@@ -290,6 +324,7 @@ def add_derived_features(
 
 def process_one_dataset(dataset_file: str, output_prefix: str = "processed") -> None:
     """Process a single TFRecord file.
+
     Performs the following:
     - reads and decodes the data
     - normalizes all the image data in all bands to be in [0,1]
@@ -314,7 +349,7 @@ def process_one_dataset(dataset_file: str, output_prefix: str = "processed") -> 
 
 
 def compute_hash(file_name: str) -> str:
-    """Compute the md5sum of the given file
+    """Compute the md5sum of the given file.
 
     Args:
         file_name (str): The name of the file to process
@@ -324,12 +359,13 @@ def compute_hash(file_name: str) -> str:
     """
     with open(file_name, "rb") as f:
         data = f.read()
-        hash = hashlib.md5(data).hexdigest()
-    return hash
+        hash_signature = hashlib.md5(data).hexdigest()
+    return hash_signature
 
 
 def _process_data(flist: List[str], db_path: str) -> None:
     """Process all the TFRecord files in file list.
+
     Will:
     - Store the hash of all files for future reference
     - Process all the data as described in process_one_dataset
@@ -381,12 +417,12 @@ def process_data(
             with open(db_path, "r") as fp:
                 hashes = json.load(fp)
                 retrain = False
-                for name, hash in track(
+                for name, hash_signature in track(
                     hashes.items(),
                     description="Checking hashes correspond to current data",
                 ):
                     current_md5 = compute_hash(os.path.join(data_path, name))
-                    if current_md5 != hash:
+                    if current_md5 != hash_signature:
                         logger.warning(
                             f"The hashes for {name} don't match we need to retrain!"
                         )

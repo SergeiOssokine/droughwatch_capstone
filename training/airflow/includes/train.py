@@ -1,29 +1,35 @@
+"""Contains routines to train a CNN with Keras and keep track
+of experiments with either WandB or MLFlow. See the configuration
+options in setup/conf/training
+"""
+
+import glob
+import logging
+import os
 from typing import Any, Dict, List
 
+import keras
 import mlflow
 import numpy as np
 import omegaconf
-import onnx
 import tensorflow as tf
 import wandb
 from hydra import compose, initialize_config_dir
+from keras import layers
 from omegaconf import DictConfig
 from rich.logging import RichHandler
 from rich.traceback import install
 from wandb.integration.keras import WandbMetricsLogger
 
+from . import parse_data
+from .training_utils import (
+    convert_model_to_onnx,
+    generate_random_id,
+    upload_model_to_s3,
+)
+
 AUTOTUNE = tf.data.AUTOTUNE
 print(tf.__version__)
-import glob
-import logging
-import os
-
-import keras
-import parse_data
-import tf2onnx
-from keras import layers
-from training_utils import generate_random_id
-
 tf.compat.v1.set_random_seed(23)
 
 CONFIG_PATH = "/usr/local/airflow/conf"
@@ -88,12 +94,12 @@ def class_weights() -> Dict[int, float]:
         Dict[int, float]: Class weights for evert class
     """
 
-    class_weights = {}
-    class_weights[0] = 1.0
-    class_weights[1] = 4.0
-    class_weights[2] = 4.0
-    class_weights[3] = 6.0
-    return class_weights
+    class_weights_dict = {}
+    class_weights_dict[0] = 1.0
+    class_weights_dict[1] = 4.0
+    class_weights_dict[2] = 4.0
+    class_weights_dict[3] = 6.0
+    return class_weights_dict
 
 
 def construct_baseline_model(cfg: DictConfig) -> keras.Sequential:
@@ -163,7 +169,8 @@ def train_model(
         model_config (str, optional): Which model configuration to use. Defaults to "default".
         features_config (str, optional): Which features to use. Defaults to "default".
         logging_config (str, optional): What logging to use. Defaults to "default".
-        override_args (Dict[str, Any] | None, optional): Any direct overrides to give. Defaults to None.
+        override_args (Dict[str, Any] | None, optional): Any direct overrides to give.
+            Defaults to None.
     """
     if override_args is None:
         override_args = {}
@@ -195,7 +202,6 @@ def train_cnn(cfg: DictConfig):
     Raises:
         NotImplementedError: If experiment tracking style is not supported
     """
-    buffer_size = NUM_TRAIN
     # Model related settings
     keylist = cfg.features.list
     batch_size = cfg.model.batch_size
@@ -204,15 +210,12 @@ def train_cnn(cfg: DictConfig):
     logging_style = cfg.logging.style
 
     # load training data in TFRecord format
-    train_data_path = cfg.data.train_data
-    filelist = glob.glob(os.path.join(train_data_path, "processed_part*"))
-    train_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
+    filelist = glob.glob(os.path.join(cfg.data.train_data, "processed_part*"))
+    train_dataset = get_dataset(filelist, batch_size, NUM_TRAIN, keylist=keylist)
 
     # load validation data in TFRecord format
-    val_data_path = cfg.data.val_data
-    filelist = glob.glob(os.path.join(val_data_path, "processed_part*"))
-    buffer_size = NUM_VAL
-    val_dataset = get_dataset(filelist, batch_size, buffer_size, keylist=keylist)
+    filelist = glob.glob(os.path.join(cfg.data.val_data, "processed_part*"))
+    val_dataset = get_dataset(filelist, batch_size, NUM_VAL, keylist=keylist)
 
     model = construct_baseline_model(cfg)
     run_name = f"{cfg.model.name}_{generate_random_id()}"
@@ -222,14 +225,15 @@ def train_cnn(cfg: DictConfig):
             key = os.environ["WANDB_API_KEY"]
         except KeyError:
             logger.critical(
-                "Logging style was set to wandb, but the WANDB_API_KEY is not set. Make sure to change it inside the .env file!"
+                "Logging style was set to wandb, but the WANDB_API_KEY is not set."
+                "Make sure to change it inside the .env file!"
             )
             exit(-1)
         wandb.login(key=key)
 
         # initialize wandb logging for your project and save your settings
 
-        wandb.init(name=run_name, project=PROJECT_NAME)
+        run = wandb.init(name=run_name, project=PROJECT_NAME)
 
         config = omegaconf.OmegaConf.to_container(
             cfg, resolve=True, throw_on_missing=True
@@ -250,7 +254,7 @@ def train_cnn(cfg: DictConfig):
         raise NotImplementedError
 
     if epochs > 0:
-        history = model.fit(
+        model.fit(
             train_dataset,
             epochs=epochs,
             validation_data=val_dataset,
@@ -263,38 +267,45 @@ def train_cnn(cfg: DictConfig):
     if cfg.model.register:
         # We want to register this model in the model registry so we can
         # later use it in production.
+
+        # Convert the trained model to ONNX
+        onnx_model = convert_model_to_onnx(model)
+
+        model_s3_path = f"s3://{cfg.model_registry_s3_bucket}/{cfg.model.name}"
+        config_yaml = omegaconf.OmegaConf.to_yaml(cfg, resolve=True)
+
         if logging_style == "mlflow":
             run_id = run.info.run_id
             model_uri = f"runs:/{run_id}/model"
             mlflow.register_model(model_uri=model_uri, name=cfg.model.name)
+            mlflow.onnx.log_model(onnx_model, "artifacts-generic")
+            # Record the S3 path
+            mlflow.log_param("model_s3_path", model_s3_path)
+            mlflow.end_run()
+            # Upload the model to S3
+            upload_model_to_s3(
+                onnx_model, cfg.model.name, cfg.model_registry_s3_bucket, config_yaml
+            )
+        elif logging_style == "wandb":
+            # For WandB we upload the model first, then link it
+            upload_model_to_s3(
+                onnx_model, cfg.model.name, cfg.model_registry_s3_bucket, config_yaml
+            )
+            model_artifact = wandb.Artifact(cfg.model.name, type="model")
+            s3_path = f"s3://{cfg.model_registry_s3_bucket}/{cfg.model.name}/model.onnx"
+            model_artifact.add_reference(s3_path)
+            run.log_artifact(model_artifact)
 
-        # Convert the trained model to ONNX
-        input_layer = tf.keras.layers.Input(batch_shape=model.input_shape)
-        prev_layer = input_layer
-        for layer in model.layers:
-            prev_layer = layer(prev_layer)
-        functional_model = tf.keras.models.Model(
-            inputs=[input_layer], outputs=[prev_layer]
-        )
+            run.link_model(
+                path=s3_path, registered_model_name="baseline", aliases=["staging"]
+            )
 
-        # Now convert the Functional model to ONNX
-        input_signature = (
-            tf.TensorSpec(functional_model.input_shape, tf.float32, name="input"),
-        )
-        onnx_model, _ = tf2onnx.convert.from_keras(functional_model, input_signature)
-        mlflow.onnx.log_model(onnx_model, "artifacts-generic")
-        # Upload the model to S3
-        model_s3_path = f"s3://{cfg.model_registry_s3_bucket}/{cfg.model.name}"
-        # onnx.save
-        # Record the S3 path
-        mlflow.log_param("model_s3_path", model_s3_path)
-    if logging_style == "mlflow":
-        mlflow.end_run()
+            run.finish()
 
 
 if __name__ == "__main__":
     train_model(
         model_config="default",
-        logging_config="mlflow",
+        logging_config="default",
         # override_args={"training.features.list": ["NDMI"]},
     )
