@@ -16,7 +16,6 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
     """
     response = s3.list_objects_v2(Bucket=bucket, Prefix=s3_path)
     folders = []
-    print(response)
     for c in response["Contents"]:
         key = c["Key"]
         if "/" in key:
@@ -28,7 +27,6 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
 def lambda_handler(event, context):
 
     bucket_name = event["bucket_name"]
-    dir_name = event["dir_name"]
     if S3_ENDPOINT_URL is not None:
 
         s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT_URL)
@@ -40,19 +38,15 @@ def lambda_handler(event, context):
 
     response = s3.list_objects_v2(
         Bucket=bucket_name,
-        # Prefix=dir_name)
     )
-    print(response)
 
     for c in response["Contents"]:
         key = c["Key"]
         print(f"key:{key}")
-        if key[-1] == "/":
+        if key[-1] == "/" or "processed" in key:
             continue
         name = os.path.basename(key)
         base_dir = os.path.dirname(key)
-        # with tempfile.TemporaryFile(mode='w+b') as f:
-        #     s3.download_fileobj(bucket_name, key, f)
 
         with tempfile.TemporaryDirectory() as tmpdirname:
             print("created temporary directory", tmpdirname)
@@ -60,18 +54,20 @@ def lambda_handler(event, context):
             with open(tmp_file, "w+b") as f:
                 s3.download_fileobj(bucket_name, key, f)
 
-            processed_file = process_one_dataset(tmp_file)
+            processed_file = process_one_dataset(tmp_file, assign_id=True)
             with open(processed_file, "rb") as f:
                 s3.upload_fileobj(
                     f,
                     bucket_name,
                     os.path.join(base_dir, os.path.basename(processed_file)),
                 )
+    return {
+        "statusCode": 200,
+    }
 
 
 if __name__ == "__main__":
     event = {
-        "bucket_name": "droughtwatch-data-428355f9-93b3-4d51-8dee-4da967b63bdf",
-        "dir_name": "2024-07-26_11-57-17",
+        "bucket_name": "droughtwatch",
     }
     lambda_handler(event, None)
