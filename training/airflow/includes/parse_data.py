@@ -9,6 +9,7 @@ import hashlib
 import json
 import logging
 import os
+import uuid
 from functools import partial
 from typing import Dict, List, Tuple
 
@@ -59,6 +60,7 @@ keylist_processed = [
     "NDVI",
     "NDMI",
     "EVI",
+    "uuid",
 ]
 
 features_processed = {
@@ -133,7 +135,7 @@ def serialize_tensor(tensor: Tensor) -> tf.train.Feature:
     return feature
 
 
-def serialize_data(element: Tuple[Dict[str, Tensor], Tensor]) -> bytes:
+def serialize_data(element: Tuple[Dict[str, Tensor], Tensor], assign_id=False) -> bytes:
     """Searilize a single element of the dataset to bytes.
 
     Args:
@@ -153,7 +155,12 @@ def serialize_data(element: Tuple[Dict[str, Tensor], Tensor]) -> bytes:
         )
 
     feature["label"] = tf.train.Feature(int64_list=tf.train.Int64List(value=[label]))
-
+    if assign_id:
+        id = uuid.uuid4().hex
+        print(id, id.encode("utf-8"))
+        feature["id"] = tf.train.Feature(
+            bytes_list=tf.train.BytesList(value=[id.encode("utf-8")])
+        )
     example = tf.train.Example(features=tf.train.Features(feature=feature))
     return example.SerializeToString()
 
@@ -188,9 +195,16 @@ def parse_tf_record(
         )
 
     image = tf.concat(bandlist, -1)
-    label = tf.cast(example["label"], tf.int32)
-    # This is now actual data we want to use, so we one-hot encode the labels
-    label = tf.one_hot(label, NUM_CLASSES)
+    if "label" in example.keys():
+        label = tf.cast(example["label"], tf.int32)
+        # This is now actual data we want to use, so we one-hot encode the labels
+        label = tf.one_hot(label, NUM_CLASSES)
+    else:
+        label = None
+    if "id" in features.keys():
+        id = example["id"]
+        return image, label, id
+
     return image, label
 
 
@@ -216,6 +230,7 @@ def read_raw_tfrecord(
     path: str | List[str],
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
+    s3: bool = False,
 ) -> Dataset[Tuple[Dict[str, Tensor], Tensor]]:
     """Read one or many raw datasets. Will normalize the data and remove any blank
     images.
@@ -229,7 +244,9 @@ def read_raw_tfrecord(
     Returns:
         Dataset: The parsed dataset, as a dict with keys representing features
     """
+
     dataset = tf.data.TFRecordDataset(path)
+
     parsed_dataset = dataset.map(
         partial(parse_raw_tfrecord, keylist=keylist, features=features)
     )
@@ -268,6 +285,7 @@ def read_processed_tfrecord(
 def write_processed_output(
     dataset: Dataset[Tuple[Dict[str, Tensor], Tensor]],
     out_name: str = "processed",
+    assign_id: bool = False,
 ) -> None:
     """Write the processed output to disk.
 
@@ -277,7 +295,7 @@ def write_processed_output(
     """
     with tf.io.TFRecordWriter(out_name) as file_writer:
         for element in dataset:
-            example = serialize_data(element)
+            example = serialize_data(element, assign_id=assign_id)
             file_writer.write(example)
         file_writer.close()
 
@@ -322,7 +340,9 @@ def add_derived_features(
     return res, label
 
 
-def process_one_dataset(dataset_file: str, output_prefix: str = "processed") -> None:
+def process_one_dataset(
+    dataset_file: str, output_prefix: str = "processed", assign_id: bool = False
+) -> str:
     """Process a single TFRecord file.
 
     Performs the following:
@@ -334,6 +354,7 @@ def process_one_dataset(dataset_file: str, output_prefix: str = "processed") -> 
     Args:
         dataset_file (str): The file to process
         output_prefix (str, optional): Prefix to add the name. Defaults to "processed".
+        use_buffer (bool, optional): If True, don't write to disk, return a
     """
     # Read the data and decode it
     # Also normalize and remove blanks
@@ -343,9 +364,11 @@ def process_one_dataset(dataset_file: str, output_prefix: str = "processed") -> 
     # Write the data back to disk for use
     dataset_dir = os.path.dirname(dataset_file)
     dataset_name = os.path.basename(dataset_file)
+
     out_name = os.path.join(dataset_dir, f"{output_prefix}_{dataset_name}")
 
-    write_processed_output(updated_dataset, out_name)
+    write_processed_output(updated_dataset, out_name, assign_id=assign_id)
+    return out_name
 
 
 def compute_hash(file_name: str) -> str:
