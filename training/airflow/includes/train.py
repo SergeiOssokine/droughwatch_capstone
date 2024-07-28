@@ -295,11 +295,10 @@ def train_cnn(cfg: DictConfig):
             s3_path = f"s3://{cfg.model_registry_s3_bucket}/{cfg.model.name}/model.onnx"
             model_artifact.add_reference(s3_path)
             run.log_artifact(model_artifact)
-
-            run.link_model(
-                path=s3_path, registered_model_name="baseline", aliases=["staging"]
+            run.link_artifact(
+                model_artifact,
+                f"{cfg.logging.wandb_org_name}/wandb-registry-model/{PROJECT_NAME}_{cfg.model.name}",
             )
-
             run.finish()
 
 

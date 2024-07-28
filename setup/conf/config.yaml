@@ -13,10 +13,12 @@ defaults:
 secrets_path: ./setup/.secrets
 
 training:
-  model_registry_s3_bucket: "droughtwatch-capstone-0afd39b0-6a17-4fd2-af8f-181fdd55a09e"
+  model_registry_s3_bucket: "droughtwatch-capstone-8121e039-a4ec-4e7b-9b82-cdfc39520157"
   logging:
     style: wandb
-      
+    wandb_org_name:
+
+
 infra:
   aws_region: us-east-1
-  terraform_ml_inference_state_bucket: "terraform-state-0afd39b0-6a17-4fd2-af8f-181fdd55a09e"
+  terraform_ml_inference_state_bucket: "terraform-state-8121e039-a4ec-4e7b-9b82-cdfc39520157"
