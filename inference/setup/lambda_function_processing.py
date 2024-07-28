@@ -33,8 +33,9 @@ def lambda_handler(event, context):
     else:
         s3 = boto3.client("s3")
 
-    folders = get_all_folders(s3, bucket_name, "")
-    print(folders)
+    print(f"S3_ENDPOINT_URL={S3_ENDPOINT_URL}")
+    # folders = get_all_folders(s3, bucket_name, "")
+    # print(folders)
 
     response = s3.list_objects_v2(
         Bucket=bucket_name,

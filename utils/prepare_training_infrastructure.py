@@ -8,6 +8,7 @@ from hydra import compose, initialize
 from omegaconf import DictConfig, OmegaConf
 from rich.console import Console
 from rich.logging import RichHandler
+from rich.panel import Panel
 from rich.syntax import Syntax
 from rich.traceback import install
 
@@ -117,7 +118,10 @@ if __name__ == "__main__":
 
     logger.info("The following is the complete configuration of the project")
     console = Console()
-    syntax = Syntax(OmegaConf.to_yaml(cfg, resolve=True), "yaml", theme="ansi_light")
+    syntax = Panel(
+        Syntax(OmegaConf.to_yaml(cfg, resolve=True), "yaml", theme="ansi_light"),
+        title="config.yaml",
+    )
     console.print(syntax)
     logger.info("Validating the configuration")
     validate_dict(cfg)
