@@ -1,0 +1,8 @@
+aws_endpoint_url: "http://localhost:4566"
+data_path: "sample_data/28_07_24/"
+model_path: "sample_model/baseline/"
+data_bucket_name: "droughtwatch-data"
+model_registry_s3_bucket: "droughtwatch-model"
+image: "inference:v0.1"
+AWS_ACCESS_KEY_ID: "foo"
+AWS_SECRET_ACCESS_KEY: "bar"

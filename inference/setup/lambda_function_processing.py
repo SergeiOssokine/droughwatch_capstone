@@ -5,7 +5,7 @@ from typing import List
 import boto3
 from parse_data import process_one_dataset
 
-S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 
 
 def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
@@ -25,15 +25,13 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
 
 
 def lambda_handler(event, context):
-
-    bucket_name = event["bucket_name"]
-    if S3_ENDPOINT_URL is not None:
-
-        s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT_URL)
+    bucket_name = event["data_bucket_name"]
+    if AWS_ENDPOINT_URL is not None:
+        s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
     else:
         s3 = boto3.client("s3")
 
-    print(f"S3_ENDPOINT_URL={S3_ENDPOINT_URL}")
+    print(f"S3_ENDPOINT_URL={AWS_ENDPOINT_URL}")
     # folders = get_all_folders(s3, bucket_name, "")
     # print(folders)
 
@@ -44,7 +42,7 @@ def lambda_handler(event, context):
     for c in response["Contents"]:
         key = c["Key"]
         print(f"key:{key}")
-        if key[-1] == "/" or "processed" in key:
+        if (key[-1] == "/") or ("processed" in key) or ("parquet" in key):
             continue
         name = os.path.basename(key)
         base_dir = os.path.dirname(key)
@@ -62,13 +60,11 @@ def lambda_handler(event, context):
                     bucket_name,
                     os.path.join(base_dir, os.path.basename(processed_file)),
                 )
-    return {
-        "statusCode": 200,
-    }
+    return {"statusCode": 200, "body": {"name": name}}
 
 
 if __name__ == "__main__":
     event = {
-        "bucket_name": "droughtwatch",
+        "data_bucket_name": "droughtwatch",
     }
     lambda_handler(event, None)

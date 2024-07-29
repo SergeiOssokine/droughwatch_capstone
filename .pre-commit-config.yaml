@@ -3,7 +3,9 @@ repos:
     rev: v4.5.0
     hooks:
       - id: check-merge-conflict # prevent committing files with merge conflicts
-      - id: check-added-large-files # don't add large files
+      - id: check-added-large-files
+        args:
+          - '--maxkb=2000' # don't add large files
       - id: check-yaml
       - id: trailing-whitespace
       - id: debug-statements

@@ -14,7 +14,7 @@ import tensorflow as tf
 from omegaconf import OmegaConf
 from parse_data import process_one_dataset
 
-S3_ENDPOINT_URL = os.getenv("S3_ENDPOINT_URL")
+AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 
 
 features_inference = {
@@ -128,11 +128,11 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
 
 def lambda_handler(event, context):
     data_bucket_name = event["data_bucket_name"]
-    s3_model_path = event.get("s3_model_path", os.environ.get("s3_model_path"))
+    s3_model_path = event.get("model_path", os.environ.get("model_path"))
 
-    if S3_ENDPOINT_URL is not None:
-        s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT_URL)
-        wr.config.s3_endpoint_url = S3_ENDPOINT_URL
+    if AWS_ENDPOINT_URL is not None:
+        s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
+        wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
     else:
         s3 = boto3.client("s3")
     model, config = get_model(s3, s3_model_path)
@@ -141,12 +141,14 @@ def lambda_handler(event, context):
     response = s3.list_objects_v2(
         Bucket=data_bucket_name,
     )
+    names = []
     for c in response["Contents"]:
         key = c["Key"]
-        if "processed" not in key:
+        if ("processed" not in key) or ("parquet" in key):
             continue
         name = os.path.basename(key)
         base_dir = os.path.dirname(key)
+        names.append(name)
         with tempfile.TemporaryDirectory() as tmpdirname:
             print("created temporary directory", tmpdirname)
             tmp_file = os.path.join(tmpdirname, name)
@@ -167,11 +169,10 @@ def lambda_handler(event, context):
             wr.s3.to_parquet(
                 df=df,
                 path=f"s3://{data_bucket_name}/{os.path.join(base_dir, 'predictions.parquet')}",
+                compression=None,
             )
 
-    return {
-        "statusCode": 200,
-    }
+    return {"statusCode": 200, "body": {"names": names}}
 
 
 if __name__ == "__main__":

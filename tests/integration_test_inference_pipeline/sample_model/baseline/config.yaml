@@ -1,0 +1,18 @@
+logging:
+  style: wandb
+data:
+  train_data: /usr/local/airflow/data/droughtwatch_data/train
+  val_data: /usr/local/airflow/data/droughtwatch_data/val
+model:
+  learning_rate: 0.0005
+  epochs: 2
+  batch_size: 64
+  name: baseline
+  register: true
+features:
+  list:
+  - B2
+  - B3
+  - B4
+  - B5
+model_registry_s3_bucket: droughtwatch-capstone-8121e039-a4ec-4e7b-9b82-cdfc39520157
