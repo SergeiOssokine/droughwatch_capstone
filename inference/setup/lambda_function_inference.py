@@ -183,7 +183,7 @@ def lambda_handler(event, context):
                     compression=None,
                 )
 
-        return {"statusCode": 200, "body": event}
+        return {"statusCode": 200, "body": ev}
     except Exception as e:
         tb_string = traceback.format_exc()
         return {

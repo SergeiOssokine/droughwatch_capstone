@@ -14,8 +14,10 @@ resource "aws_lambda_function" "inference_lambda" {
   // This step is optional (environment)
   environment {
     variables = {
+      "model_registry_s3_bucket": var.model_bucket,
+      "model_path": var.model_path
     }
   }
   timeout     = 700
-  memory_size = 1024
+  memory_size = 3000
 }

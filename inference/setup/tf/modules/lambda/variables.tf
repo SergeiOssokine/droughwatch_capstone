@@ -1,6 +1,10 @@
 variable "model_bucket" {
   description = "Name of the bucket containing the model"
 }
+variable "model_path" {
+  description = "Name of the model to use"
+}
+
 variable "data_bucket" {
   description = "Name of the bucket containing the data"
 }
