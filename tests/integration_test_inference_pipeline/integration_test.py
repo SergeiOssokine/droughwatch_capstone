@@ -4,9 +4,8 @@ import os
 
 import boto3
 import typer
-from integration_test_inference import inference_integration_test
-from integration_test_processing import processing_integration_test
 from omegaconf import OmegaConf
+from perform_integration_test import integration_test
 from rich.logging import RichHandler
 from rich.traceback import install
 from typing_extensions import Annotated
@@ -53,11 +52,26 @@ def main(
     logger.info("Setting up for integration test")
     setup(config)
     # Run the processing integration test
-    processing_integration_test(config)
+    # processing_integration_test(config)
+    expectation_processing = {"sample_data/28_07_24/processed_part-r-00033": 27757899}
+    payload_processing = {"data_bucket_name": "droughtwatch-data"}
+    st = {
+        "expectation": expectation_processing,
+        "target": "processed",
+        "payload": payload_processing,
+    }
+    integration_test(config, "processing", st)
 
     # Run the inference integration test
-    inference_integration_test(config)
-
+    # inference_integration_test(config)
+    expectation_inference = {"sample_data/28_07_24/predictions.parquet": 17586}
+    payload_inference = {"body": {"data_bucket_name": "droughtwatch-data"}}
+    st = {
+        "expectation": expectation_inference,
+        "target": "parquet",
+        "payload": payload_inference,
+    }
+    integration_test(config, "inference", st)
     # Run the observability integration test
     # observability_integration_test(config)
     logger.info("Integration test completed.")

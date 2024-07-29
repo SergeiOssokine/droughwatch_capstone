@@ -1,5 +1,6 @@
 import logging
 import sys
+from typing import Any, Dict
 
 import boto3
 import docker
@@ -19,21 +20,23 @@ install()
 LAMBDA_URL = "http://localhost:8080/2015-03-31/functions/function/invocations"
 
 
-def inference_integration_test(config):
-    logger.info("Starting the inference lambda integration test")
+def integration_test(config, name: str, settings: Dict[str, Any]):
+    expectation = settings["expectation"]
+    payload = settings["payload"]
+    target = settings["target"]
+    logger.info(f"Starting the {name} lambda integration test")
     # Launch the image with the correct CMD
     logger.info("Launching lambda docker container")
     client = docker.from_env()
     container = client.containers.run(
         config.image,
-        command=["lambda_function_inference.lambda_handler"],
+        command=[f"lambda_function_{name}.lambda_handler"],
         environment=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
         network_mode="host",
         detach=True,
     )
     logger.info("Done")
     # Send request to the right port
-    payload = {"body": {"data_bucket_name": "droughtwatch-data"}}
     logger.info("Sending API request")
     response = requests.post(LAMBDA_URL, json=payload)
     resp = response.json()
@@ -58,17 +61,16 @@ def inference_integration_test(config):
     result = {}
     for it in response_check["Contents"]:
         key = it["Key"]
-        if "parquet" in key:
+        if target in key:
             result[key] = it["Size"]
 
-    expected = {"sample_data/28_07_24/predictions.parquet": 17586}
     # We check the following:
     # 1. The processed data is present in the s3 bucket
     # 2. Check that the processed data is the right size
-    if DeepDiff(result, expected):
+    if DeepDiff(result, expectation):
         logger.critical("The lambda function result and the expectations differ:")
         logger.info("Cleaning up and exiting")
-        print_difference(expected, result)
+        print_difference(expectation, result)
         clean_up(container)
         sys.exit(1)
     logger.info("Checks completed!")
