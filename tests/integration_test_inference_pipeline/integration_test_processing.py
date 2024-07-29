@@ -8,7 +8,7 @@ from deepdiff import DeepDiff
 from omegaconf import OmegaConf
 from rich.logging import RichHandler
 from rich.traceback import install
-from test_utils import print_difference
+from test_utils import clean_up, print_difference
 
 # Sets up the logger to work with rich
 logger = logging.getLogger(__name__)
@@ -40,6 +40,14 @@ def processing_integration_test(config):
     logger.info("Sending API request")
 
     response = requests.post(LAMBDA_URL, json=payload)
+    resp = response.json()
+    body = resp["body"]
+    status = resp["statusCode"]
+    if status != 200:
+        logger.critical(f"Received status {response.status_code}")
+        logger.info(body)
+        clean_up(container)
+        sys.exit(1)
     logger.info(f"Response was {response.content}")
 
     # Perform checks
@@ -51,6 +59,7 @@ def processing_integration_test(config):
     response_check = s3.list_objects_v2(
         Bucket=config.data_bucket_name, Prefix=config.data_path
     )
+
     result = {}
     for it in response_check["Contents"]:
         key = it["Key"]
@@ -66,13 +75,11 @@ def processing_integration_test(config):
         logger.critical("The lambda function result and the expectations differ:")
         logger.info("Cleaning up and exiting")
         print_difference(expected, result)
-        container.stop()
-        container.remove()
+        clean_up(container)
         sys.exit(1)
 
     logger.info("Checks completed!")
     logger.info("Cleaning up")
     # Clean up
-    container.stop()
-    container.remove()
+    clean_up(container)
     logger.info("Done")

@@ -1,18 +1,17 @@
-import io
+import json
 import os
 import tempfile
+import traceback
 from typing import Dict, List
 
 import awswrangler as wr
 import boto3
 import numpy as np
-import onnx
 import onnxruntime as rt
 import pandas as pd
 import parse_data
 import tensorflow as tf
 from omegaconf import OmegaConf
-from parse_data import process_one_dataset
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 
@@ -127,52 +126,70 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
 
 
 def lambda_handler(event, context):
-    data_bucket_name = event["data_bucket_name"]
-    s3_model_path = event.get("model_path", os.environ.get("model_path"))
+    try:
+        ev = event["body"]
+        data_bucket_name = ev["data_bucket_name"]
+        s3_model_path = ev.get("model_path", os.environ.get("model_path"))
 
-    if AWS_ENDPOINT_URL is not None:
-        s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
-        wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
-    else:
-        s3 = boto3.client("s3")
-    model, config = get_model(s3, s3_model_path)
-    keylist = config.features.list
+        if AWS_ENDPOINT_URL is not None:
+            s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
+            wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
+        else:
+            s3 = boto3.client("s3")
+        model, config = get_model(s3, s3_model_path)
+        keylist = config.features.list
 
-    response = s3.list_objects_v2(
-        Bucket=data_bucket_name,
-    )
-    names = []
-    for c in response["Contents"]:
-        key = c["Key"]
-        if ("processed" not in key) or ("parquet" in key):
-            continue
-        name = os.path.basename(key)
-        base_dir = os.path.dirname(key)
-        names.append(name)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            print("created temporary directory", tmpdirname)
-            tmp_file = os.path.join(tmpdirname, name)
-            with open(tmp_file, "w+b") as f:
-                s3.download_fileobj(data_bucket_name, key, f)
-            dset = get_dataset(
-                tmp_file, keylist=keylist, batch_size=64, buffer_size=64, shuffle=False
-            )
-            inf_res, ids = run_inference(model, dset)
-            class_label = np.argmax(inf_res, axis=-1)
-            p_class_label = np.amax(inf_res, axis=-1)
-            inf_res = np.hstack(
-                (ids[:, None], inf_res, class_label[:, None], p_class_label[:, None])
-            )
-            df = pd.DataFrame(
-                inf_res, columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"]
-            )
-            wr.s3.to_parquet(
-                df=df,
-                path=f"s3://{data_bucket_name}/{os.path.join(base_dir, 'predictions.parquet')}",
-                compression=None,
-            )
+        response = s3.list_objects_v2(
+            Bucket=data_bucket_name,
+        )
+        names = []
+        for c in response["Contents"]:
+            key = c["Key"]
+            if ("processed" not in key) or ("parquet" in key):
+                continue
+            name = os.path.basename(key)
+            base_dir = os.path.dirname(key)
+            names.append(name)
+            with tempfile.TemporaryDirectory() as tmpdirname:
+                print("created temporary directory", tmpdirname)
+                tmp_file = os.path.join(tmpdirname, name)
+                with open(tmp_file, "w+b") as f:
+                    s3.download_fileobj(data_bucket_name, key, f)
+                dset = get_dataset(
+                    tmp_file,
+                    keylist=keylist,
+                    batch_size=64,
+                    buffer_size=64,
+                    shuffle=False,
+                )
+                inf_res, ids = run_inference(model, dset)
+                class_label = np.argmax(inf_res, axis=-1)
+                p_class_label = np.amax(inf_res, axis=-1)
+                inf_res = np.hstack(
+                    (
+                        ids[:, None],
+                        inf_res,
+                        class_label[:, None],
+                        p_class_label[:, None],
+                    )
+                )
+                df = pd.DataFrame(
+                    inf_res,
+                    columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"],
+                )
+                wr.s3.to_parquet(
+                    df=df,
+                    path=f"s3://{data_bucket_name}/{os.path.join(base_dir, 'predictions.parquet')}",
+                    compression=None,
+                )
 
-    return {"statusCode": 200, "body": {"names": names}}
+        return {"statusCode": 200, "body": event}
+    except Exception as e:
+        tb_string = traceback.format_exc()
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"Exception": str(e), "Traceback": tb_string}),
+        }
 
 
 if __name__ == "__main__":

@@ -4,6 +4,11 @@ from rich.panel import Panel
 from rich.pretty import Pretty
 
 
+def clean_up(container):
+    container.stop()
+    container.remove()
+
+
 def print_difference(expected, received):
     panel1 = Panel(Pretty(expected), title="Expected", expand=False)
     panel2 = Panel(Pretty(received), title="Received", expand=False)

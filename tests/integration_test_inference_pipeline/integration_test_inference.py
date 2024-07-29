@@ -8,7 +8,7 @@ from deepdiff import DeepDiff
 from omegaconf import OmegaConf
 from rich.logging import RichHandler
 from rich.traceback import install
-from test_utils import print_difference
+from test_utils import clean_up, print_difference
 
 logger = logging.getLogger(__name__)
 logger.addHandler(RichHandler(rich_tracebacks=True, markup=True))
@@ -33,9 +33,18 @@ def inference_integration_test(config):
     )
     logger.info("Done")
     # Send request to the right port
-    payload = {"data_bucket_name": "droughtwatch-data"}
+    payload = {"body": {"data_bucket_name": "droughtwatch-data"}}
     logger.info("Sending API request")
     response = requests.post(LAMBDA_URL, json=payload)
+    resp = response.json()
+    body = resp["body"]
+    status = resp["statusCode"]
+    if status != 200:
+        logger.critical(f"Received status {response.status_code}")
+        logger.info(body)
+        clean_up(container)
+        sys.exit(1)
+
     logger.info(f"Response was {response.content}")
     # Perform checks
     logger.info("Performing checks")
@@ -53,7 +62,6 @@ def inference_integration_test(config):
             result[key] = it["Size"]
 
     expected = {"sample_data/28_07_24/predictions.parquet": 17586}
-
     # We check the following:
     # 1. The processed data is present in the s3 bucket
     # 2. Check that the processed data is the right size
@@ -61,11 +69,9 @@ def inference_integration_test(config):
         logger.critical("The lambda function result and the expectations differ:")
         logger.info("Cleaning up and exiting")
         print_difference(expected, result)
-        container.stop()
-        container.remove()
+        clean_up(container)
         sys.exit(1)
     logger.info("Checks completed!")
     logger.info("Cleaning up")
-    container.stop()
-    container.remove()
+    clean_up(container)
     logger.info("Done")
