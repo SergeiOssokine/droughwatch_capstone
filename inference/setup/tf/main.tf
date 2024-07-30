@@ -51,3 +51,18 @@ module "observe_lambda_function" {
 
 }
 
+# Collect the ARN so we can pass them to the step function
+# These are returned by each lambda module
+locals {
+  lambda_arns = {
+    processing = module.processing_lambda_function.lambda_arn
+    inference  = module.inference_lambda_function.lambda_arn
+    observe    = module.observe_lambda_function.lambda_arn
+  }
+}
+
+module "step_function" {
+  source        = "./modules/step_function"
+  lambda_arns   = local.lambda_arns
+  pipeline_name = var.pipeline_name
+}

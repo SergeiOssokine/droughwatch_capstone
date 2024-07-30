@@ -53,3 +53,12 @@ resource "aws_iam_role_policy_attachment" "iam-policy-attach" {
   role       = aws_iam_role.iam_lambda.name
   policy_arn = aws_iam_policy.lambda_s3_role_policy.arn
 }
+
+data "aws_iam_policy" "allow_cloudwatch" {
+  arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole"
+}
+
+resource "aws_iam_role_policy_attachment" "allow_cloudwatch_at" {
+  role       = aws_iam_role.iam_lambda.name
+  policy_arn = data.aws_iam_policy.allow_cloudwatch.arn
+}

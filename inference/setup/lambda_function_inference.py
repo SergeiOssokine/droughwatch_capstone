@@ -43,7 +43,7 @@ def get_dataset(
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
     shuffle: bool = True,
 ):
-    """Return a batched and shuffled dataset. The input should correspond
+    """Return a batched and optionally shuffled dataset. The input should correspond
     to processed files.
 
     Args:

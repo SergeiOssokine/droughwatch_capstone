@@ -64,3 +64,8 @@ variable "image_name" {
   description = "The name of the image which will be used to run the inference pipeline"
   type        = string
 }
+
+variable "pipeline_name" {
+  description = "The name of the inference pipeline"
+  type        = string
+}

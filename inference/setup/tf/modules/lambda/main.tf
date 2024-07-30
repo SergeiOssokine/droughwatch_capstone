@@ -21,3 +21,8 @@ resource "aws_lambda_function" "inference_lambda" {
   timeout     = 700
   memory_size = 3000
 }
+
+# Return the arn of the created lambda
+output "lambda_arn" {
+  value = aws_lambda_function.inference_lambda.arn
+}
