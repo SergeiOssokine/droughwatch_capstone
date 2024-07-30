@@ -14,6 +14,18 @@ locals {
   account_id = data.aws_caller_identity.current_identity.account_id
 }
 
+# Bucket where new data should be added
+resource "aws_s3_bucket" "new_data_bucket" {
+  bucket = var.data_bucket
+}
+
+# Enable s3 notifications on the bucket
+resource "aws_s3_bucket_notification" "bucket_notification" {
+  bucket      = aws_s3_bucket.new_data_bucket.id
+  eventbridge = true
+}
+
+
 # Processing lambda
 module "processing_lambda_function" {
   source               = "./modules/lambda"
@@ -61,8 +73,24 @@ locals {
   }
 }
 
-module "step_function" {
+# The main pipeline, built as a StepFunction state machine
+# Uses the 3 lambdas above to do everything
+module "inference_pipeline" {
   source        = "./modules/step_function"
   lambda_arns   = local.lambda_arns
   pipeline_name = var.pipeline_name
 }
+
+locals {
+  pipeline_arn = module.inference_pipeline.pipeline_arn
+}
+
+# An EventBridge trigger that runs the pipeline every 24 hours
+module "schduler_trigger"{
+  source = "./modules/event_bridge_scheduler"
+  pipeline_arn = local.pipeline_arn
+  data_bucket = var.data_bucket
+  scheduler_name = var.scheduler_name
+  time_interval = var.time_interval
+}
+

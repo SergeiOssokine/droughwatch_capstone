@@ -1,0 +1,126 @@
+{
+    "Comment": "A description of my state machine",
+    "StartAt": "Processing",
+    "States": {
+        "Processing": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${ProcessingLambda}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Processing_successful"
+        },
+        "Processing_successful": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Not": {
+                        "Variable": "$.statusCode",
+                        "NumericEquals": 200
+                    },
+                    "Next": "Fail"
+                }
+            ],
+            "Default": "Inference"
+        },
+        "Fail": {
+            "Type": "Fail"
+        },
+        "Inference": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${InferenceLambda}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Inference_successful"
+        },
+        "Inference_successful": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Not": {
+                        "Variable": "$.statusCode",
+                        "NumericEquals": 200
+                    },
+                    "Next": "Fail (1)"
+                }
+            ],
+            "Default": "Observe"
+        },
+        "Fail (1)": {
+            "Type": "Fail"
+        },
+        "Observe": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "OutputPath": "$.Payload",
+            "Parameters": {
+                "Payload.$": "$",
+                "FunctionName": "${ObserveLambda}"
+            },
+            "Retry": [
+                {
+                    "ErrorEquals": [
+                        "Lambda.ServiceException",
+                        "Lambda.AWSLambdaException",
+                        "Lambda.SdkClientException",
+                        "Lambda.TooManyRequestsException"
+                    ],
+                    "IntervalSeconds": 1,
+                    "MaxAttempts": 3,
+                    "BackoffRate": 2
+                }
+            ],
+            "Next": "Observability_successful"
+        },
+        "Observability_successful": {
+            "Type": "Choice",
+            "Choices": [
+                {
+                    "Not": {
+                        "Variable": "$.statusCode",
+                        "NumericEquals": 200
+                    },
+                    "Next": "Fail (2)"
+                }
+            ],
+            "Default": "Success"
+        },
+        "Fail (2)": {
+            "Type": "Fail"
+        },
+        "Success": {
+            "Type": "Succeed"
+        }
+    }
+}

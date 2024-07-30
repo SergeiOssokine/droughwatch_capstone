@@ -69,3 +69,13 @@ variable "pipeline_name" {
   description = "The name of the inference pipeline"
   type        = string
 }
+
+variable "scheduler_name" {
+  description = "The name of the EventBridge scheduler"
+  type = string
+}
+
+variable "time_interval" {
+  type = number
+  description = "The scheduler will trigger the pipeline every this many hours"
+}

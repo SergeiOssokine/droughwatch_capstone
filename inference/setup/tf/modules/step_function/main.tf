@@ -16,3 +16,7 @@ resource "aws_cloudwatch_log_group" "MySFNLogGroup" {
   name_prefix       = "/aws/vendedlogs/states/MyStateMachine-"
   retention_in_days = 7
 }
+
+output "pipeline_arn" {
+  value = aws_sfn_state_machine.sfn_state_machine.arn
+}
