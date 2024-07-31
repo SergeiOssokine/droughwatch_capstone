@@ -9,7 +9,7 @@ from deepdiff import DeepDiff
 from omegaconf import OmegaConf
 from rich.logging import RichHandler
 from rich.traceback import install
-from test_utils import clean_up, print_difference
+from test_utils import clean_up, launch_lambda_container, print_difference
 
 logger = logging.getLogger(__name__)
 logger.addHandler(RichHandler(rich_tracebacks=True, markup=True))
@@ -27,14 +27,7 @@ def integration_test(config, name: str, settings: Dict[str, Any]):
     logger.info(f"Starting the {name} lambda integration test")
     # Launch the image with the correct CMD
     logger.info("Launching lambda docker container")
-    client = docker.from_env()
-    container = client.containers.run(
-        config.image,
-        command=[f"lambda_function_{name}.lambda_handler"],
-        environment=OmegaConf.to_container(config, resolve=True, throw_on_missing=True),
-        network_mode="host",
-        detach=True,
-    )
+    container = launch_lambda_container(name, config)
     logger.info("Done")
     # Send request to the right port
     logger.info("Sending API request")
@@ -73,6 +66,10 @@ def integration_test(config, name: str, settings: Dict[str, Any]):
         print_difference(expectation, result)
         clean_up(container)
         sys.exit(1)
+    else:
+        logger.info("Result and expectation match:")
+        print_difference(expectation, result)
+
     logger.info("Checks completed!")
     logger.info("Cleaning up")
     clean_up(container)
