@@ -1,3 +1,5 @@
 defaults:
   - training: default
+  - inference: default
 aws_region: ???
+terraform_ml_inference_state_bucket: ???

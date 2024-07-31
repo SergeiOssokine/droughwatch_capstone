@@ -16,9 +16,12 @@ training:
   model_registry_s3_bucket: "droughtwatch-capstone-8121e039-a4ec-4e7b-9b82-cdfc39520157"
   logging:
     style: wandb
-    wandb_org_name:
+    wandb_org_name: blah
 
 
 infra:
   aws_region: us-east-1
   terraform_ml_inference_state_bucket: "terraform-state-8121e039-a4ec-4e7b-9b82-cdfc39520157"
+  inference:
+    data_bucket: "best_bucket_eva_123"
+    model_path: "baseline"

@@ -10,11 +10,14 @@ import numpy as np
 import onnxruntime as rt
 import pandas as pd
 import parse_data
+import psycopg
 import tensorflow as tf
+from db_helper import sql_update, update_table
 from omegaconf import OmegaConf
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
-
+DROUGHTWATCH_DB = "droughtwatch"
+LEDGER = "ledger"
 
 features_inference = {
     "B1": tf.io.FixedLenFeature([], tf.string),
@@ -73,6 +76,7 @@ def get_dataset(
 def get_model(s3, path):
     # Load model
     registry_bucket_name = os.environ.get("model_registry_s3_bucket")
+    print(path)
     response = s3.get_object(
         Bucket=registry_bucket_name, Key=os.path.join(path, "model.onnx")
     )
@@ -125,10 +129,25 @@ def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
     return res
 
 
+def get_new_cases(db_config):
+    with psycopg.connect(
+        f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        autocommit=True,
+    ) as conn:
+        df = pd.read_sql(f'select * from "{LEDGER}"', conn)
+        new_cases = df[(df["processed"] == True) & (df["predictions_done"] == False)]
+    return new_cases["path"].values
+
+
 def lambda_handler(event, context):
     try:
+        sm = boto3.client("secretsmanager", endpoint_url=AWS_ENDPOINT_URL)
+        response = sm.get_secret_value(SecretId="DB_CONN")
+        db_config = json.loads(response["SecretString"])
+
         ev = event["body"]
         data_bucket_name = ev["data_bucket_name"]
+
         s3_model_path = ev.get("model_path", os.environ.get("model_path"))
 
         if AWS_ENDPOINT_URL is not None:
@@ -139,22 +158,24 @@ def lambda_handler(event, context):
         model, config = get_model(s3, s3_model_path)
         keylist = config.features.list
 
+        new_cases = get_new_cases(db_config)
+
         response = s3.list_objects_v2(
             Bucket=data_bucket_name,
         )
         names = []
-        for c in response["Contents"]:
-            key = c["Key"]
-            if ("processed" not in key) or ("parquet" in key):
-                continue
-            name = os.path.basename(key)
+        for key in new_cases:
+            name = f"processed_{os.path.basename(key)}"
+            print(name)
             base_dir = os.path.dirname(key)
             names.append(name)
             with tempfile.TemporaryDirectory() as tmpdirname:
                 print("created temporary directory", tmpdirname)
                 tmp_file = os.path.join(tmpdirname, name)
                 with open(tmp_file, "w+b") as f:
-                    s3.download_fileobj(data_bucket_name, key, f)
+                    s3.download_fileobj(
+                        data_bucket_name, os.path.join(base_dir, name), f
+                    )
                 dset = get_dataset(
                     tmp_file,
                     keylist=keylist,
@@ -177,15 +198,31 @@ def lambda_handler(event, context):
                     inf_res,
                     columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"],
                 )
+                print(df.dtypes)
+                df = df.astype(
+                    dtype={
+                        "ID": "string",
+                        "P_0": "float64",
+                        "P_1": "float64",
+                        "P_2": "float64",
+                        "P_3": "float64",
+                        "label": "int64",
+                        "P_label": "float64",
+                    }
+                )
+
                 wr.s3.to_parquet(
                     df=df,
                     path=f"s3://{data_bucket_name}/{os.path.join(base_dir, 'predictions.parquet')}",
                     compression=None,
                 )
-
+            # We managed to process things, let's update the ledger for corresponding item
+            u = sql_update("predictions_done", "TRUE")
+            update_table("ledger", DROUGHTWATCH_DB, u, key, db_config)
         return {"statusCode": 200, "body": ev}
     except Exception as e:
         tb_string = traceback.format_exc()
+        print(tb_string)
         return {
             "statusCode": 500,
             "body": json.dumps({"Exception": str(e), "Traceback": tb_string}),
@@ -194,8 +231,10 @@ def lambda_handler(event, context):
 
 if __name__ == "__main__":
     event = {
-        "data_bucket_name": "droughtwatch",
-        "model_registry_s3_bucket": "droughtwatch-capstone-8121e039-a4ec-4e7b-9b82-cdfc39520157",
-        "s3_model_path": "baseline",
+        "body": {
+            "data_bucket_name": "droughtwatch-data",
+            "model_registry_s3_bucket": "droughtwatch-model",
+            "model_path": "sample_model/baseline",
+        }
     }
     lambda_handler(event, None)

@@ -59,7 +59,7 @@ def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) ->
         clean_up(container)
         sys.exit(1)
 
-    logger.info(f"Response was {response.content}")
+    logger.info(f"Response was {response}")
     # Perform checks
     logger.info("Performing checks")
     logger.info(

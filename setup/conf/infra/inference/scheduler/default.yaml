@@ -1,0 +1,2 @@
+scheduler_name: "droughtwatch_pipeline_sc_trigger"
+time_interval:  24

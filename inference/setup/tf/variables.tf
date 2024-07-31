@@ -60,7 +60,7 @@ variable "observe_image_config_cmd" {
 }
 
 
-variable "image_name" {
+variable "lambda_image_name" {
   description = "The name of the image which will be used to run the inference pipeline"
   type        = string
 }
@@ -78,4 +78,19 @@ variable "scheduler_name" {
 variable "time_interval" {
   type = number
   description = "The scheduler will trigger the pipeline every this many hours"
+}
+
+variable "db_name" {
+  type = string
+  description = "The name of the main inference pipeline database"
+}
+
+variable "db_username" {
+  type = string
+  description = "The main db default username"
+}
+
+variable "db_password" {
+  type = string
+  description = "The password for default username"
 }
