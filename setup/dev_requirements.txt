@@ -1,9 +1,10 @@
 boto3
+docker
+hydra-core
+mypy
 pre-commit
 pytest
 requests
 rich
 typer
 types-tensorflow
-mypy
-hydra-core
