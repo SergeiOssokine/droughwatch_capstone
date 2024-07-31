@@ -1,12 +1,18 @@
+"""
+Performs a simple integration test by
+launching the lambda container calling the lambda
+API and then comparing the expected and recieved results.
+Assumes everything is already set-up
+"""
+
 import logging
 import sys
 from typing import Any, Dict
 
 import boto3
-import docker
 import requests
 from deepdiff import DeepDiff
-from omegaconf import OmegaConf
+from omegaconf import DictConfig
 from rich.logging import RichHandler
 from rich.traceback import install
 from test_utils import clean_up, launch_lambda_container, print_difference
@@ -20,7 +26,20 @@ install()
 LAMBDA_URL = "http://localhost:8080/2015-03-31/functions/function/invocations"
 
 
-def integration_test(config, name: str, settings: Dict[str, Any]):
+def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) -> None:
+    """Perform a single integration test for a given lambda.
+    Will do the following
+    - spin up the lambda container
+    - set the right lambda handler
+    - send an API request to the lambda with the payload
+    - compare the resulting response to the expectations
+
+    Args:
+        config (DictConfig): The config to pass to the lambda docker
+        name (str): The name of the lambda function to test
+        settings (Dict[str, Any]): Local settings that describe
+            test input/output
+    """
     expectation = settings["expectation"]
     payload = settings["payload"]
     target = settings["target"]
@@ -31,12 +50,11 @@ def integration_test(config, name: str, settings: Dict[str, Any]):
     logger.info("Done")
     # Send request to the right port
     logger.info("Sending API request")
-    response = requests.post(LAMBDA_URL, json=payload)
-    resp = response.json()
-    body = resp["body"]
-    status = resp["statusCode"]
+    response = requests.post(LAMBDA_URL, json=payload, timeout=500).json()
+    body = response["body"]
+    status = response["statusCode"]
     if status != 200:
-        logger.critical(f"Received status {response.status_code}")
+        logger.critical(f"Received status {status}")
         logger.info(body)
         clean_up(container)
         sys.exit(1)
