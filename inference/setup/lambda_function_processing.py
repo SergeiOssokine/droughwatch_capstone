@@ -2,44 +2,26 @@ import json
 import os
 import tempfile
 import traceback
-from collections import namedtuple
-from typing import List
 
 import boto3
 import pandas as pd
 import psycopg
-from db_helper import prep_db, sql_update, update_table
+from db_helper import get_credentials, prep_db, sql_update, update_table
 from parse_data import process_one_dataset
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 DROUGHTWATCH_DB = "droughtwatch"
 LEDGER = "ledger"
 
-create_table_statement = """
+CREATE_TABLE_STATEMENT = """
 create table if not exists ledger(
 	md5sum varchar(255) NOT NULL UNIQUE,
-	path varchar(255),
-    processed BOOLEAN DEFAULT FALSE,
-    predictions_done BOOLEAN DEFAULT FALSE,
+	raw_path varchar(255),
+    processed_path varchar(255) DEFAULT NULL,
+    predictions_path varchar(255) DEFAULT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 )
 """
-
-
-def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
-    """Return a list of all "folders" in s3 path
-
-    Args:
-        s3_path (str): The path to examine
-    """
-    response = s3.list_objects_v2(Bucket=bucket, Prefix=s3_path)
-    folders = []
-    for c in response["Contents"]:
-        key = c["Key"]
-        if "/" in key:
-            folders.append(os.path.dirname(key))
-    res = sorted(list(set(folders)))
-    return res
 
 
 def get_raw_data_names(bucket_name):
@@ -52,15 +34,15 @@ def get_raw_data_names(bucket_name):
 
 
 def prep_ledger(db_config, key_list, bucket_name, forced: bool = False):
-    fields = "md5sum, path"
+    fields = "md5sum, raw_path"
     s3_resource = boto3.resource("s3", endpoint_url=AWS_ENDPOINT_URL)
-    with psycopg.connect(
+    with psycopg.connect(  # pylint: disable=E1129
         f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)
         if not forced:
-            new_items = set(key_list) - set(df["path"].values)
+            new_items = set(key_list) - set(df["raw_path"].values)
         else:
             new_items = key_list
         for item in new_items:
@@ -72,13 +54,10 @@ def prep_ledger(db_config, key_list, bucket_name, forced: bool = False):
     return new_items
 
 
-def lambda_handler(event, context):
-
+def lambda_handler(event, context):  # pylint: disable=unused-argument
     try:
-        sm = boto3.client("secretsmanager", endpoint_url=AWS_ENDPOINT_URL)
-        response = sm.get_secret_value(SecretId="DB_CONN")
-        db_config = json.loads(response["SecretString"])
-        prep_db(db_config, DROUGHTWATCH_DB, create_table_statement)
+        db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
+        prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
 
         bucket_name = event["data_bucket_name"]
         if AWS_ENDPOINT_URL is not None:
@@ -86,40 +65,42 @@ def lambda_handler(event, context):
         else:
             s3 = boto3.client("s3")
 
-        response = s3.list_objects_v2(
-            Bucket=bucket_name,
-        )
-
         # Add anything new to the DB
-
         names = get_raw_data_names(bucket_name)
         new_items = prep_ledger(db_config, names, bucket_name)
 
-        # Loop over new stuff and process i
+        # Loop over new stuff and process it
         for key in new_items:
-            print(key)
+
             name = os.path.basename(key)
             base_dir = os.path.dirname(key)
 
             with tempfile.TemporaryDirectory() as tmpdirname:
-                print("created temporary directory", tmpdirname)
+                # Get the original dataset
                 tmp_file = os.path.join(tmpdirname, name)
                 with open(tmp_file, "w+b") as f:
                     s3.download_fileobj(bucket_name, key, f)
 
+                # This will create a processed file inside the temp directory
                 processed_file = process_one_dataset(tmp_file, assign_id=True)
+                processed_path = os.path.join(
+                    base_dir, os.path.basename(processed_file)
+                )
+                # Save the processed file to the S3 bucket
                 with open(processed_file, "rb") as f:
                     s3.upload_fileobj(
                         f,
                         bucket_name,
-                        os.path.join(base_dir, os.path.basename(processed_file)),
+                        processed_path,
                     )
+
             # We managed to process things, let's update the ledger for corresponding item
-            u = sql_update("processed", "TRUE")
-            update_table("ledger", DROUGHTWATCH_DB, u, key, db_config)
+            u = sql_update("processed_path", processed_path)
+            cond = f"raw_path = '{key}'"
+            update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
 
         return {"statusCode": 200, "body": event}
-    except Exception as e:
+    except Exception as e:  # pylint: disable=W0718
         tb_string = traceback.format_exc()
         print(tb_string)
         return {
@@ -129,7 +110,7 @@ def lambda_handler(event, context):
 
 
 if __name__ == "__main__":
-    event = {
+    fake_event = {
         "data_bucket_name": "droughtwatch-data",
     }
-    lambda_handler(event, None)
+    lambda_handler(fake_event, None)

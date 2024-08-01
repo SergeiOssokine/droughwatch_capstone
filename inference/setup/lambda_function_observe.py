@@ -1,19 +1,16 @@
 import datetime
-import json
 import os
+from collections import OrderedDict
 from typing import Any, Dict, Union
 
 import awswrangler as wr
-import boto3
 import pandas as pd
 import psycopg
-from db_helper import prep_db
+from db_helper import get_credentials, prep_db
 from evidently import ColumnMapping
 from evidently.metrics import (
     ColumnDriftMetric,
-    ColumnQuantileMetric,
     ColumnSummaryMetric,
-    DatasetDriftMetric,
     DatasetMissingValuesMetric,
 )
 from evidently.report import Report
@@ -21,9 +18,12 @@ from evidently.report import Report
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 
 DROUGHTWATCH_DB = "droughtwatch"
+LEDGER = "ledger"
+METRICS = "metrics"
 
 create_table_statement = """
 create table if not exists metrics(
+    predictions_path varchar(255),
 	timestamp timestamp,
 	class_0_frac float,
     class_1_frac float,
@@ -65,7 +65,7 @@ def extract_metric_data(result: Dict[str, Any]) -> Dict[str, Union[int, float, s
     Returns:
         Dict[str, Union[int, float, str]]: A dictionary of the metrics
     """
-    result_metrics = {}
+    result_metrics = OrderedDict()
     metrics = result["metrics"]
 
     result_metrics["share_missing_values"] = metrics[0]["result"]["current"][
@@ -96,51 +96,64 @@ def compute_metrics(current_data: pd.DataFrame, ref_data: pd.DataFrame):
     metrics = extract_metric_data(result)
 
     props = current_data["label"].value_counts() / current_data["label"].count()
-    metrics.update(**{f"class_{k}_frac": v for k, v in props.to_dict().items()})
+    # metrics.update(**{f"class_{k}_frac": v for k, v in props.to_dict().items()})
+    metrics.update({f"class_{k}_frac": v for k, v in props.items()})
     metrics["timestamp"] = datetime.datetime.now()
+
     return metrics
+
+
+def get_new_predictions(db_config):
+    with psycopg.connect(
+        f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        autocommit=True,
+    ) as conn:
+        df_ledger = pd.read_sql(f'select * from "{LEDGER}"', conn)
+        df_metrics = pd.read_sql(f'select * from "{METRICS}"', conn)
+        new_items = set(df_ledger["predictions_path"].values) - set(
+            df_metrics["predictions_path"]
+        )
+        return new_items
 
 
 def lambda_handler(event, context):
     ev = event["body"]
     bucket_name = ev["data_bucket_name"]
-    prediction_list = event["prediction_list"]
+
     if AWS_ENDPOINT_URL is not None:
-        s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
         wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
 
-    else:
-        s3 = boto3.client("s3")
+    reference_data_path = os.getenv("reference_path", "reference_data.parquet")
+    db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
 
-    print(f"S3_ENDPOINT_URL={AWS_ENDPOINT_URL}")
+    # We get the unobserved cases
 
-    sm = boto3.client("secretsmanager", endpoint_url=AWS_ENDPOINT_URL)
-    response = sm.get_secret_value(SecretId="DB_CONN")
-    db_config = json.loads(response["SecretString"])
     prep_db(db_config, DROUGHTWATCH_DB, create_table_statement)
     host = db_config["host"]
     user = db_config["username"]
     password = db_config["password"]
+    predictions_list = get_new_predictions(db_config)
     with psycopg.connect(
         f"host={host} port=5432 user={user} dbname={DROUGHTWATCH_DB} password={password}",
         autocommit=True,
     ) as conn:
-        for prediction in prediction_list:
+        for prediction in predictions_list:
             # Compute the metrics we want
             df = wr.s3.read_parquet(path=f"s3://{bucket_name}/{prediction}")
             df_ref = wr.s3.read_parquet(
-                path=f"s3://{bucket_name}/fake_reference_data.parquet"
+                path=f"s3://{bucket_name}/{reference_data_path}"
             )
-            metrics = compute_metrics(df, df_ref)
+            metrics = OrderedDict()
+            metrics.update(predictions_path=prediction)
+            metrics.update(**compute_metrics(df, df_ref))
 
             with conn.cursor() as curr:
                 insert_row_into_table(curr, metrics, "metrics")
-    return {"statusCode": 200}
+    return {"statusCode": 200, "body": "Updated observation table"}
 
 
 if __name__ == "__main__":
     event = {
         "body": {"data_bucket_name": "droughtwatch-data"},
-        "prediction_list": ["sample_data/28_07_24/predictions.parquet"],
     }
     lambda_handler(event, None)

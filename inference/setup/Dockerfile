@@ -8,5 +8,6 @@ COPY [ "parse_data.py", "./" ]
 COPY [ "lambda_function_processing.py", "./" ]
 COPY [ "lambda_function_inference.py", "./" ]
 COPY [ "lambda_function_observe.py", "./" ]
+COPY [ "db_helper.py", "./" ]
 
 CMD [ "lambda_function_processing.lambda_handler" ]

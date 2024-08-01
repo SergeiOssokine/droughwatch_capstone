@@ -1,7 +1,19 @@
+import json
 from collections import namedtuple
 from typing import Dict
 
+import boto3
 import psycopg
+
+
+def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
+    if endpoint_url:
+        sm = boto3.client("secretsmanager", endpoint_url=endpoint_url)
+    else:
+        sm = boto3.client("secretsmanager")
+    response = sm.get_secret_value(SecretId="DB_CONN")
+    db_config = json.loads(response["SecretString"])
+    return db_config
 
 
 def prep_db(db_config: Dict[str, str], db_name: str, create_table_statement: str):
@@ -22,12 +34,12 @@ def prep_db(db_config: Dict[str, str], db_name: str, create_table_statement: str
 
 
 def update_table(
-    table: str, db_name: str, update, path_cond: str, db_config: Dict[str, str]
+    table: str, db_name: str, update, cond: str, db_config: Dict[str, str]
 ):
     sql_cmd = f"""
 UPDATE {table}
-SET {update.field} = {update.value}
-WHERE path = '{path_cond}'
+SET {update.field} = '{update.value}'
+WHERE {cond}
 """
     with psycopg.connect(
         f"host={db_config['host']} port=5432 dbname={db_name} user={db_config['username']} password={db_config['password']}",

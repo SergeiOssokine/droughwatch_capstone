@@ -5,6 +5,7 @@ docker-compose.
 """
 
 import glob
+import json
 import logging
 import os
 
@@ -35,11 +36,27 @@ def setup_sample(s3_client: boto3.client, path: str, bucket_name: str) -> None:
     s3_client.create_bucket(Bucket=bucket_name)
     tmp = os.path.join(path, "*")
     lst = glob.glob(tmp)
+    print(lst)
     for it in lst:
         fname = os.path.basename(it)
         local_filepath = os.path.join(path, fname)
         remote_filepath = local_filepath
         _ = s3_client.upload_file(local_filepath, bucket_name, remote_filepath)
+
+
+def setup_secret(config):
+    sm = boto3.client("secretsmanager", endpoint_url=config.aws_endpoint_url)
+    with open(config.db_secret, "r") as fp:
+        secret_payload = json.dumps(json.load(fp))
+
+    try:
+        sm.create_secret(
+            Name="DB_CONN",
+            Description="Secret for connecting to DB",
+            SecretString=secret_payload,
+        )
+    except sm.exceptions.ResourceExistsException:
+        pass
 
 
 def setup(config: DictConfig) -> None:
@@ -59,6 +76,11 @@ def setup(config: DictConfig) -> None:
     logger.info("Setting up sample model")
     setup_sample(s3_client, config.model_path, config.model_registry_s3_bucket)
 
+    logger.info("Setting up sample reference data")
+    setup_sample(s3_client, config.reference_path, config.data_bucket_name)
+    logger.info("Setting up a new secret to connect to database")
+    setup_secret(config)
+
 
 def main(
     config: Annotated[str, typer.Option(help="The config file to use")] = "config.yaml",
@@ -76,6 +98,7 @@ def main(
     # Setup: create the S3 buckets with sample data and sample model
     logger.info("Setting up for integration test")
     setup(config)
+
     # Run the processing integration test
     expectation_processing = {"sample_data/28_07_24/processed_part-r-00033": 27757899}
     payload_processing = {"data_bucket_name": "droughtwatch-data"}
@@ -87,7 +110,7 @@ def main(
     integration_test(config, "processing", st)
 
     # Run the inference integration test
-    expectation_inference = {"sample_data/28_07_24/predictions.parquet": 17586}
+    expectation_inference = {"sample_data/28_07_24/predictions.parquet": 14581}
     payload_inference = {"body": {"data_bucket_name": "droughtwatch-data"}}
     st = {
         "expectation": expectation_inference,
@@ -96,7 +119,22 @@ def main(
     }
     integration_test(config, "inference", st)
     # Run the observability integration test
-
+    expectation_observe = {
+        "predictions_path": {0: "sample_data/28_07_24/predictions.parquet"},
+        "class_0_frac": {0: 0.4700854700854701},
+        "class_1_frac": {0: 0.10256410256410256},
+        "class_2_frac": {0: 0.15384615384615385},
+        "class_3_frac": {0: 0.27350427350427353},
+        "most_common_percentage": {0: 47.01},
+        "share_missing_values": {0: 0.0},
+        "prediction_drift": {0: 0.1674621565443287},
+    }
+    st = {
+        "expectation": expectation_observe,
+        "target": "db",
+        "payload": payload_inference,
+    }
+    integration_test(config, "observe", st)
     logger.info("Integration test completed.")
 
 

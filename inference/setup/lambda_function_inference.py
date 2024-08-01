@@ -12,7 +12,7 @@ import pandas as pd
 import parse_data
 import psycopg
 import tensorflow as tf
-from db_helper import sql_update, update_table
+from db_helper import get_credentials, sql_update, update_table
 from omegaconf import OmegaConf
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
@@ -42,7 +42,7 @@ def get_dataset(
     filelist: List[str],
     batch_size: int,
     buffer_size: int,
-    keylist: List[str] | None = None,
+    feature_list: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
     shuffle: bool = True,
 ):
@@ -59,13 +59,13 @@ def get_dataset(
     Returns:
         tf.Dataset: The dataset ready for training/validation
     """
-    if keylist is None:
+    if feature_list is None:
         # Use RGB bands as default
-        keylist = ["B2", "B3", "B4"]
+        feature_list = ["B2", "B3", "B4"]
     if features is None:
         features = features_inference
     dataset = parse_data.read_processed_tfrecord(
-        filelist, keylist=keylist, features=features
+        filelist, keylist=feature_list, features=features
     )
     if shuffle:
         dataset = dataset.shuffle(buffer_size)
@@ -73,15 +73,12 @@ def get_dataset(
     return dataset
 
 
-def get_model(s3, path):
+def get_model(s3, path: str):
     # Load model
     registry_bucket_name = os.environ.get("model_registry_s3_bucket")
-    print(path)
     response = s3.get_object(
         Bucket=registry_bucket_name, Key=os.path.join(path, "model.onnx")
     )
-    # content = response['Body'].read()
-    # model = onnx.load(io.BytesIO(content))
     model = response["Body"].read()
     # Load config
     response = s3.get_object(
@@ -99,11 +96,13 @@ def run_inference(model, dset):
     all_onnx_preds = []
     all_ids = []
     for batch in dset:
+        # Note that batch is a tuple
+        # (tensor of features, tensor of labels, tensor of ids)
+        # The tensor of features has shape (n_cases, IMG_DIM, IMG_DIM,n_features)
+        # We use tensor of features as input, ignore the labels
+        # and store the ids.
         inputs = {input_name: batch[0].numpy()}
-        ids = [
-            x.decode("utf-8") for x in batch[2].numpy()
-        ]  # .tobytes().decode("utf-8")
-
+        ids = [x.decode("utf-8") for x in batch[2].numpy()]
         onnx_pred = m.run(None, inputs)
         tmp = np.array(onnx_pred)
         all_onnx_preds.append(tmp.reshape(tmp.shape[1], tmp.shape[2]))
@@ -113,20 +112,33 @@ def run_inference(model, dset):
     return result_onnx, np.array(all_ids)
 
 
-def get_all_folders(s3, bucket: str, s3_path: str) -> List[str]:
-    """Return a list of all "folders" in s3 path
-
-    Args:
-        s3_path (str): The path to examine
-    """
-    response = s3.list_objects_v2(Bucket=bucket, Prefix=s3_path)
-    folders = []
-    for c in response["Contents"]:
-        key = c["Key"]
-        if "/" in key:
-            folders.append(os.path.dirname(key))
-    res = sorted(list(set(folders)))
-    return res
+def package_predictions(model_results, case_ids):
+    class_label = np.argmax(model_results, axis=-1)
+    p_class_label = np.amax(model_results, axis=-1)
+    model_results = np.hstack(
+        (
+            case_ids[:, None],
+            model_results,
+            class_label[:, None],
+            p_class_label[:, None],
+        )
+    )
+    df = pd.DataFrame(
+        model_results,
+        columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"],
+    )
+    df = df.astype(
+        dtype={
+            "ID": "string",
+            "P_0": "float64",
+            "P_1": "float64",
+            "P_2": "float64",
+            "P_3": "float64",
+            "label": "int64",
+            "P_label": "float64",
+        }
+    )
+    return df
 
 
 def get_new_cases(db_config):
@@ -135,90 +147,61 @@ def get_new_cases(db_config):
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)
-        new_cases = df[(df["processed"] == True) & (df["predictions_done"] == False)]
-    return new_cases["path"].values
+        new_cases = df[(df["processed_path"].notna()) & (df["predictions_path"].isna())]
+    return new_cases["processed_path"].values
 
 
 def lambda_handler(event, context):
     try:
-        sm = boto3.client("secretsmanager", endpoint_url=AWS_ENDPOINT_URL)
-        response = sm.get_secret_value(SecretId="DB_CONN")
-        db_config = json.loads(response["SecretString"])
 
+        # Data from previous step
         ev = event["body"]
         data_bucket_name = ev["data_bucket_name"]
-
+        # Load the model and its config
         s3_model_path = ev.get("model_path", os.environ.get("model_path"))
-
         if AWS_ENDPOINT_URL is not None:
             s3 = boto3.client("s3", endpoint_url=AWS_ENDPOINT_URL)
             wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
         else:
             s3 = boto3.client("s3")
         model, config = get_model(s3, s3_model_path)
-        keylist = config.features.list
 
+        # Get new cases from ledger database
+        db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
         new_cases = get_new_cases(db_config)
 
-        response = s3.list_objects_v2(
-            Bucket=data_bucket_name,
-        )
-        names = []
+        # For every case that does not have predictions, run the model
         for key in new_cases:
-            name = f"processed_{os.path.basename(key)}"
-            print(name)
+            name = os.path.basename(key)
             base_dir = os.path.dirname(key)
-            names.append(name)
             with tempfile.TemporaryDirectory() as tmpdirname:
-                print("created temporary directory", tmpdirname)
                 tmp_file = os.path.join(tmpdirname, name)
+                # Get the processed datfile
                 with open(tmp_file, "w+b") as f:
                     s3.download_fileobj(
                         data_bucket_name, os.path.join(base_dir, name), f
                     )
                 dset = get_dataset(
                     tmp_file,
-                    keylist=keylist,
+                    feature_list=config.features.list,
                     batch_size=64,
                     buffer_size=64,
                     shuffle=False,
                 )
+                # Get the results and write them back to s3
                 inf_res, ids = run_inference(model, dset)
-                class_label = np.argmax(inf_res, axis=-1)
-                p_class_label = np.amax(inf_res, axis=-1)
-                inf_res = np.hstack(
-                    (
-                        ids[:, None],
-                        inf_res,
-                        class_label[:, None],
-                        p_class_label[:, None],
-                    )
-                )
-                df = pd.DataFrame(
-                    inf_res,
-                    columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"],
-                )
-                print(df.dtypes)
-                df = df.astype(
-                    dtype={
-                        "ID": "string",
-                        "P_0": "float64",
-                        "P_1": "float64",
-                        "P_2": "float64",
-                        "P_3": "float64",
-                        "label": "int64",
-                        "P_label": "float64",
-                    }
-                )
-
+                df = package_predictions(inf_res, ids)
+                predictions_path = os.path.join(base_dir, "predictions.parquet")
                 wr.s3.to_parquet(
                     df=df,
-                    path=f"s3://{data_bucket_name}/{os.path.join(base_dir, 'predictions.parquet')}",
+                    path=f"s3://{data_bucket_name}/{predictions_path}",
                     compression=None,
                 )
-            # We managed to process things, let's update the ledger for corresponding item
-            u = sql_update("predictions_done", "TRUE")
-            update_table("ledger", DROUGHTWATCH_DB, u, key, db_config)
+            # Update the ledger, recording that this file has predictions
+            u = sql_update("predictions_path", predictions_path)
+            cond = f"processed_path='{key}'"
+            update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
+
         return {"statusCode": 200, "body": ev}
     except Exception as e:
         tb_string = traceback.format_exc()

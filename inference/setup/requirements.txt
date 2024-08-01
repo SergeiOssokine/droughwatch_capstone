@@ -1,8 +1,11 @@
 awswrangler
 boto3
+deepdiff
+evidently
 hydra-core
 onnx
 onnxruntime
 pandas
+psycopg[binary,pool]
 pyarrow
 tensorflow-cpu==2.17

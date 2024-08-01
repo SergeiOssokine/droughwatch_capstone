@@ -5,11 +5,14 @@ API and then comparing the expected and recieved results.
 Assumes everything is already set-up
 """
 
+import json
 import logging
 import sys
 from typing import Any, Dict
 
 import boto3
+import pandas as pd
+import psycopg
 import requests
 from deepdiff import DeepDiff
 from omegaconf import DictConfig
@@ -26,6 +29,68 @@ install()
 LAMBDA_URL = "http://localhost:8080/2015-03-31/functions/function/invocations"
 
 
+def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
+    if endpoint_url:
+        sm = boto3.client("secretsmanager", endpoint_url=endpoint_url)
+    else:
+        sm = boto3.client("secretsmanager")
+    response = sm.get_secret_value(SecretId="DB_CONN")
+    db_config = json.loads(response["SecretString"])
+    return db_config
+
+
+def perform_checks(config, settings, container):
+    expectation = settings["expectation"]
+    target = settings["target"]
+
+    if "db" not in target:
+        s3 = boto3.client("s3", endpoint_url=config.aws_endpoint_url)
+        response_check = s3.list_objects_v2(
+            Bucket=config.data_bucket_name, Prefix=config.data_path
+        )
+        result = {}
+        for it in response_check["Contents"]:
+            key = it["Key"]
+            if target in key:
+                result[key] = it["Size"]
+
+        # We check the following:
+        # 1. The processed data is present in the s3 bucket
+        # 2. Check that the processed data is the right size
+        if DeepDiff(result, expectation):
+            logger.critical("The lambda function result and the expectations differ:")
+            logger.info("Cleaning up and exiting")
+            print_difference(expectation, result)
+            clean_up(container)
+            sys.exit(1)
+        else:
+            logger.info("Result and expectation match:")
+            print_difference(expectation, result)
+    else:
+        # We need to get the final state of the metrics db
+        db_config = get_credentials(endpoint_url=config.aws_endpoint_url)
+        with psycopg.connect(
+            f"host={db_config['host']} port=5432 dbname=droughtwatch user={db_config['username']} password={db_config['password']}",
+            autocommit=True,
+        ) as conn:
+            sql = "select * from metrics;"
+            result = pd.read_sql_query(sql, conn).to_dict()
+            result.pop("timestamp")
+            # We check that the results in the "metrics" database matches our expectations
+            # We compare all columns except timestamp, for obvious reasons
+            if DeepDiff(result, expectation, math_epsilon=1e-6):
+                logger.critical(
+                    "The lambda function result and the expectations differ:"
+                )
+                logger.info("Cleaning up and exiting")
+                print_difference(expectation, result)
+                clean_up(container)
+                sys.exit(1)
+            else:
+                logger.info("Result and expectation match:")
+                print_difference(expectation, result)
+
+
 def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) -> None:
     """Perform a single integration test for a given lambda.
     Will do the following
@@ -40,9 +105,8 @@ def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) ->
         settings (Dict[str, Any]): Local settings that describe
             test input/output
     """
-    expectation = settings["expectation"]
+
     payload = settings["payload"]
-    target = settings["target"]
     logger.info(f"Starting the {name} lambda integration test")
     # Launch the image with the correct CMD
     logger.info("Launching lambda docker container")
@@ -51,6 +115,7 @@ def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) ->
     # Send request to the right port
     logger.info("Sending API request")
     response = requests.post(LAMBDA_URL, json=payload, timeout=500).json()
+    print(response)
     body = response["body"]
     status = response["statusCode"]
     if status != 200:
@@ -65,28 +130,7 @@ def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) ->
     logger.info(
         "Will check the prediction file was created in right place with right size"
     )
-    s3 = boto3.client("s3", endpoint_url=config.aws_endpoint_url)
-    response_check = s3.list_objects_v2(
-        Bucket=config.data_bucket_name, Prefix=config.data_path
-    )
-    result = {}
-    for it in response_check["Contents"]:
-        key = it["Key"]
-        if target in key:
-            result[key] = it["Size"]
-
-    # We check the following:
-    # 1. The processed data is present in the s3 bucket
-    # 2. Check that the processed data is the right size
-    if DeepDiff(result, expectation):
-        logger.critical("The lambda function result and the expectations differ:")
-        logger.info("Cleaning up and exiting")
-        print_difference(expectation, result)
-        clean_up(container)
-        sys.exit(1)
-    else:
-        logger.info("Result and expectation match:")
-        print_difference(expectation, result)
+    perform_checks(config, settings, container)
 
     logger.info("Checks completed!")
     logger.info("Cleaning up")
