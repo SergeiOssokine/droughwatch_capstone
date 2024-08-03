@@ -105,7 +105,7 @@ def compute_metrics(current_data: pd.DataFrame, ref_data: pd.DataFrame):
 
 def get_new_predictions(db_config):
     with psycopg.connect(
-        f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:
         df_ledger = pd.read_sql(f'select * from "{LEDGER}"', conn)
@@ -131,10 +131,11 @@ def lambda_handler(event, context):
     prep_db(db_config, DROUGHTWATCH_DB, create_table_statement)
     host = db_config["host"]
     user = db_config["username"]
+    port = db_config["port"]
     password = db_config["password"]
     predictions_list = get_new_predictions(db_config)
     with psycopg.connect(
-        f"host={host} port=5432 user={user} dbname={DROUGHTWATCH_DB} password={password}",
+        f"host={host} port={port} user={user} dbname={DROUGHTWATCH_DB} password={password}",
         autocommit=True,
     ) as conn:
         for prediction in predictions_list:

@@ -36,6 +36,9 @@ def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
         sm = boto3.client("secretsmanager")
     response = sm.get_secret_value(SecretId="DB_CONN")
     db_config = json.loads(response["SecretString"])
+    tmp_host, tmp_port = db_config["host"].split(":")
+    db_config["host"] = tmp_host
+    db_config["port"] = tmp_port
     return db_config
 
 
@@ -70,7 +73,7 @@ def perform_checks(config, settings, container):
         # We need to get the final state of the metrics db
         db_config = get_credentials(endpoint_url=config.aws_endpoint_url)
         with psycopg.connect(
-            f"host={db_config['host']} port=5432 dbname=droughtwatch user={db_config['username']} password={db_config['password']}",
+            f"host={db_config['host']} port={db_config['port']} dbname=droughtwatch user={db_config['username']} password={db_config['password']}",
             autocommit=True,
         ) as conn:
             sql = "select * from metrics;"

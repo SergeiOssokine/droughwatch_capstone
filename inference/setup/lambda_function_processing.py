@@ -37,7 +37,7 @@ def prep_ledger(db_config, key_list, bucket_name, forced: bool = False):
     fields = "md5sum, raw_path"
     s3_resource = boto3.resource("s3", endpoint_url=AWS_ENDPOINT_URL)
     with psycopg.connect(  # pylint: disable=E1129
-        f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)

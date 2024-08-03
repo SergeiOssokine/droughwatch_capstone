@@ -143,7 +143,7 @@ def package_predictions(model_results, case_ids):
 
 def get_new_cases(db_config):
     with psycopg.connect(
-        f"host={db_config['host']} port=5432 dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)
