@@ -72,25 +72,33 @@ variable "pipeline_name" {
 
 variable "scheduler_name" {
   description = "The name of the EventBridge scheduler"
-  type = string
+  type        = string
 }
 
 variable "time_interval" {
-  type = number
+  type        = number
   description = "The scheduler will trigger the pipeline every this many hours"
 }
 
 variable "db_name" {
-  type = string
+  type        = string
   description = "The name of the main inference pipeline database"
 }
-
+# The credentials for the database. We make them sensitive so
+# they are never output by default
 variable "db_username" {
-  type = string
-  description = "The main db default username"
+  type        = string
+  description = "The default user to make"
+  sensitive   = true
+}
+variable "db_password" {
+  type        = string
+  description = "Password for the default user"
+  sensitive   = true
 }
 
-variable "db_password" {
+
+variable "bastion_key" {
   type = string
-  description = "The password for default username"
+  description = "The PUBLIC ssh key to access the bastion EC2 instance. Only rsa and ed25519 allowed"
 }
