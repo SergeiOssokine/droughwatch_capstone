@@ -12,7 +12,7 @@ import pandas as pd
 import parse_data
 import psycopg
 import tensorflow as tf
-from db_helper import get_credentials, sql_update, update_table
+from db_helper import SqlUpdate, get_credentials, update_table
 from omegaconf import OmegaConf
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
@@ -198,7 +198,7 @@ def lambda_handler(event, context):
                     compression=None,
                 )
             # Update the ledger, recording that this file has predictions
-            u = sql_update("predictions_path", predictions_path)
+            u = SqlUpdate("predictions_path", predictions_path)
             cond = f"processed_path='{key}'"
             update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
 

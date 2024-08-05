@@ -8,6 +8,7 @@ import glob
 import json
 import logging
 import os
+import sys
 
 import boto3
 import typer
@@ -82,8 +83,21 @@ def setup(config: DictConfig) -> None:
     setup_secret(config)
 
 
+def write_env_file(config, env_file_name=".env"):
+    with open(env_file_name, "w") as fw:
+        for key, value in config.items():
+            fw.write(f"{key}={value}\n")
+
+
 def main(
     config: Annotated[str, typer.Option(help="The config file to use")] = "config.yaml",
+    setup_only: Annotated[
+        bool, typer.Option(help="Whether to only do setup but not run the tests")
+    ] = False,
+    dump_env_file: Annotated[
+        bool,
+        typer.Option(help="Whether to dump an env file that can be used with docker"),
+    ] = False,
 ):
     """Main function that call the processing, inference and observability tests
 
@@ -98,7 +112,10 @@ def main(
     # Setup: create the S3 buckets with sample data and sample model
     logger.info("Setting up for integration test")
     setup(config)
-
+    if dump_env_file:
+        write_env_file(config)
+    if setup_only:
+        sys.exit(0)
     # Run the processing integration test
     expectation_processing = {"sample_data/28_07_24/processed_part-r-00033": 27757899}
     payload_processing = {"data_bucket_name": "droughtwatch-data"}

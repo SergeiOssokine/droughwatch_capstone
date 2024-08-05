@@ -31,3 +31,4 @@ repos:
         args: ["--py37-plus"]
       - id: nbqa-isort
         args: ["--float-to-top", "--profile=black"]
+

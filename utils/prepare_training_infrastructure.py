@@ -1,7 +1,6 @@
 import logging
 import os
 import subprocess as sp
-from typing import Dict, List, Union
 
 import boto3
 from conf_utils import validate_dict

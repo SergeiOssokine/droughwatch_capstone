@@ -56,4 +56,4 @@ WHERE {cond}
             curr.execute(sql_cmd)
 
 
-sql_update = namedtuple("sql_update", ["field", "value"])
+SqlUpdate = namedtuple("SqlUpdate", ["field", "value"])

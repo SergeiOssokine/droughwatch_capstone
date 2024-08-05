@@ -24,9 +24,17 @@ def get_account_id():
 
 
 def setup_terraform_default_vars(cfg: DictConfig, path_to_vars: str) -> None:
+    """Writes the terraform .tfvars file based on the yaml config provided.
+    The result is used when provisioning inference infrastructure with tf.
+
+    Args:
+        cfg (DictConfig): The config dictionary constructed by hydra
+        path_to_vars (str): The absolute path (including file name) to
+            the .tfvars file
+    """
     infra_config = cfg.infra
     config_gen = dict_generator(OmegaConf.to_container(infra_config.inference))
-    with open(path_to_vars, "w") as fw:
+    with open(path_to_vars, "w", encoding="utf-8") as fw:
         for it in config_gen:
             key, val = it[-2:]
             if isinstance(val, str):
@@ -48,10 +56,9 @@ if __name__ == "__main__":
     # Compose with overrides
     cfg = compose(config_name="config")
     setup_terraform_default_vars(cfg, TF_PATH)
-    exit(0)
     config = OmegaConf.to_container(cfg.infra)
     config.pop("training")
-    id = get_account_id()
+    account_id = get_account_id()
     logger.info("Getting the auth token from ECR")
     ecr_client = boto3.client("ecr", region_name=config["aws_region"])
     response = ecr_client.get_authorization_token()

@@ -2,11 +2,12 @@ import json
 import os
 import tempfile
 import traceback
+from typing import Dict, List
 
 import boto3
 import pandas as pd
 import psycopg
-from db_helper import get_credentials, prep_db, sql_update, update_table
+from db_helper import SqlUpdate, get_credentials, prep_db, update_table
 from parse_data import process_one_dataset
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
@@ -24,7 +25,15 @@ create table if not exists ledger(
 """
 
 
-def get_raw_data_names(bucket_name):
+def get_raw_data_names(bucket_name: str) -> List[str]:
+    """Find all raw data files in the bucket
+
+    Args:
+        bucket_name (str): The bucket to check
+
+    Returns:
+        List(str): List of raw files
+    """
     s3 = boto3.resource("s3", endpoint_url=AWS_ENDPOINT_URL)
     # Get a list of all keys which we know are not products
     s3_bucket = s3.Bucket(bucket_name)
@@ -33,7 +42,23 @@ def get_raw_data_names(bucket_name):
     return names
 
 
-def prep_ledger(db_config, key_list, bucket_name, forced: bool = False):
+def prep_ledger(
+    db_config: Dict[str, str | int | float],
+    key_list: List[str],
+    bucket_name: str,
+    forced: bool = False,
+) -> List[str]:
+    """Prepare the ledger database table
+
+    Args:
+        db_config (Dict[str, str  |  int  |  float]): Database configuration
+        key_list (List[str]): List of raw files names
+        bucket_name (str): The name of the data bucket
+        forced (bool, optional): Force rerun. Defaults to False.
+
+    Returns:
+        List[str]: List of new raw files not found in ledger
+    """
     fields = "md5sum, raw_path"
     s3_resource = boto3.resource("s3", endpoint_url=AWS_ENDPOINT_URL)
     with psycopg.connect(  # pylint: disable=E1129
@@ -71,7 +96,6 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
 
         # Loop over new stuff and process it
         for key in new_items:
-
             name = os.path.basename(key)
             base_dir = os.path.dirname(key)
 
@@ -95,7 +119,7 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
                     )
 
             # We managed to process things, let's update the ledger for corresponding item
-            u = sql_update("processed_path", processed_path)
+            u = SqlUpdate("processed_path", processed_path)
             cond = f"raw_path = '{key}'"
             update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
 

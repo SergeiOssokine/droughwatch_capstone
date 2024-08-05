@@ -21,7 +21,7 @@ DROUGHTWATCH_DB = "droughtwatch"
 LEDGER = "ledger"
 METRICS = "metrics"
 
-create_table_statement = """
+CREATE_TABLE_STATEMENT = """
 create table if not exists metrics(
     predictions_path varchar(255),
 	timestamp timestamp,
@@ -128,7 +128,7 @@ def lambda_handler(event, context):
 
     # We get the unobserved cases
 
-    prep_db(db_config, DROUGHTWATCH_DB, create_table_statement)
+    prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
     host = db_config["host"]
     user = db_config["username"]
     port = db_config["port"]

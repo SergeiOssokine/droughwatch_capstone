@@ -1,4 +1,10 @@
+"""
+Various utilities to help with parsing and validating the
+configuration files.
+"""
+
 import logging
+import sys
 from typing import Dict, List, Union
 
 from omegaconf import DictConfig, OmegaConf
@@ -58,4 +64,4 @@ def validate_dict(cfg: DictConfig) -> None:
             fail = True
     if fail:
         logger.critical("Validation failed! Exiting")
-        exit(1)
+        sys.exit(1)
