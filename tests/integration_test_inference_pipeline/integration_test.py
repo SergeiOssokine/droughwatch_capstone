@@ -106,16 +106,20 @@ def main(
             Defaults to "config.yaml".
     """
     logger.info("Starting integration test")
+
     # Read config
     logger.info(f"Loading the config file, {config}")
     config = OmegaConf.load(config)
+
     # Setup: create the S3 buckets with sample data and sample model
+    # Also create secret to store the database credentials
     logger.info("Setting up for integration test")
     setup(config)
     if dump_env_file:
         write_env_file(config)
     if setup_only:
         sys.exit(0)
+
     # Run the processing integration test
     expectation_processing = {"sample_data/28_07_24/processed_part-r-00033": 27757899}
     payload_processing = {"data_bucket_name": "droughtwatch-data"}
@@ -135,6 +139,7 @@ def main(
         "payload": payload_inference,
     }
     integration_test(config, "inference", st)
+
     # Run the observability integration test
     expectation_observe = {
         "predictions_path": {0: "sample_data/28_07_24/predictions.parquet"},
