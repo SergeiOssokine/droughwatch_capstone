@@ -21,3 +21,6 @@ launch_training_infra:
 
 train_baseline:
 	bash ./training/scripts/launch_baseline.sh
+
+integration_tests:
+	bash ./tests/integration_test_inference_pipeline/integration_tests.sh
