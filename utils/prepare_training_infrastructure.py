@@ -90,3 +90,9 @@ if __name__ == "__main__":
     logger.info(f"Appending the contents of {secrets} to the .env file")
     sp.check_call(f"cat {secrets} >> ./training/setup/.env", shell=True)
     logger.info("Done")
+
+    # Set flag to use GPU
+    if cfg.infra.use_gpu_training:
+        os.symlink("docker-compose.gpu.yml", "./training/setup/docker-compose.yml")
+    else:
+        os.symlink("docker-compose.cpu.yml", "./training/setup/docker-compose.yml")

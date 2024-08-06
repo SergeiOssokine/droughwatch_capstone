@@ -3,3 +3,4 @@ defaults:
   - inference: default
 aws_region: ???
 terraform_ml_inference_state_bucket: ???
+use_gpu_training: ???
