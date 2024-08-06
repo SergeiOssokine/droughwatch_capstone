@@ -28,5 +28,6 @@ jobs:
         run: pip install uv && uv pip install --system --no-cache   -r dev_requirements.txt
 
       - name: Run Unit tests
+        working-directory: ${{ github.workspace }}
         run: |
           make integration_tests
