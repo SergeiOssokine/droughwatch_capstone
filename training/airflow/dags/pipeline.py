@@ -56,7 +56,7 @@ with DAG(
     process = create_data_process_task(task_id="data_processing")
     train = PythonOperator(task_id="training", python_callable=train_baseline)
 
-    process >> train
+    process >> train  # pylint: disable=W0104
 
 with DAG(
     dag_id="useful",
@@ -66,7 +66,7 @@ with DAG(
     process = create_data_process_task(task_id="data_processing")
     train = PythonOperator(task_id="training", python_callable=train_useful)
 
-    process >> train
+    process >> train  # pylint: disable=W0104
 
 with DAG(
     dag_id="dummy",
@@ -76,7 +76,7 @@ with DAG(
     process = create_data_process_task(task_id="data_processing")
     train = PythonOperator(task_id="training", python_callable=train_dummy)
 
-    process >> train
+    process >> train  # pylint: disable=W0104
 
 with DAG(
     dag_id="ndvi",
@@ -86,4 +86,4 @@ with DAG(
     process = create_data_process_task(task_id="data_processing")
     train = PythonOperator(task_id="training", python_callable=train_ndvi)
 
-    process >> train
+    process >> train  # pylint: disable=W0104

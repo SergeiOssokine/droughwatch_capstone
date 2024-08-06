@@ -5,7 +5,7 @@ repos:
       - id: check-merge-conflict # prevent committing files with merge conflicts
       - id: check-added-large-files
         args:
-          - '--maxkb=2000' # don't add large files
+          - '--maxkb=5000' # don't add anything > 5MB
       - id: check-yaml
       - id: trailing-whitespace
       - id: debug-statements

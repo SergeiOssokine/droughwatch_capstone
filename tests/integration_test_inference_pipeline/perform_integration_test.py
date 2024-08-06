@@ -8,6 +8,7 @@ Assumes everything is already set-up
 import json
 import logging
 import sys
+import time
 from typing import Any, Dict
 
 import boto3
@@ -61,13 +62,15 @@ def perform_checks(config, settings, container):
         # 1. The processed data is present in the s3 bucket
         # 2. Check that the processed data is the right size
         if DeepDiff(result, expectation):
-            logger.critical("The lambda function result and the expectations differ:")
+            logger.critical(
+                "The lambda function result and the expectations [bold]differ[/bold]:"
+            )
             logger.info("Cleaning up and exiting")
             print_difference(expectation, result)
             clean_up(container)
             sys.exit(1)
         else:
-            logger.info("Result and expectation match:")
+            logger.info("Result and expectation [bold]match[/bold]:")
             print_difference(expectation, result)
     else:
         # We need to get the final state of the metrics db
@@ -81,6 +84,7 @@ def perform_checks(config, settings, container):
             result.pop("timestamp")
             # We check that the results in the "metrics" database matches our expectations
             # We compare all columns except timestamp, for obvious reasons
+            print(result)
             if DeepDiff(result, expectation, math_epsilon=1e-6):
                 logger.critical(
                     "The lambda function result and the expectations differ:"
@@ -90,7 +94,7 @@ def perform_checks(config, settings, container):
                 clean_up(container)
                 sys.exit(1)
             else:
-                logger.info("Result and expectation match:")
+                logger.info("Result and expectation [bold]match[/bold]:")
                 print_difference(expectation, result)
 
 
@@ -114,11 +118,11 @@ def integration_test(config: DictConfig, name: str, settings: Dict[str, Any]) ->
     # Launch the image with the correct CMD
     logger.info("Launching lambda docker container")
     container = launch_lambda_container(name, config)
+    time.sleep(5)
     logger.info("Done")
     # Send request to the right port
     logger.info("Sending API request")
     response = requests.post(LAMBDA_URL, json=payload, timeout=500).json()
-    print(response)
     body = response["body"]
     status = response["statusCode"]
     if status != 200:

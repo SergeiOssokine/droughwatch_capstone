@@ -49,15 +49,15 @@ def assemble_env_file(cfg: DictConfig) -> None:
     postgres_config = cfg.infra.training.postgres
     airflow_config = cfg.infra.training.airflow
     s3_bucket_name = cfg.training.model_registry_s3_bucket
-
-    with open("./setup/.env", "w") as fw:
+    env_path = "./training/setup/.env"
+    with open(env_path, "w") as fw:
         for k, v in postgres_config.items():
             fw.write(f"{k}={v}\n")
         for k, v in airflow_config.items():
             fw.write(f"{k}={v}\n")
         fw.write(f"S3_BUCKET_NAME={s3_bucket_name}\n")
 
-    logger.info(f"Done. File created in {os.path.abspath('./setup/.env')}")
+    logger.info(f"Done. File created in {os.path.abspath(env_path)}")
 
 
 if __name__ == "__main__":
@@ -80,7 +80,7 @@ if __name__ == "__main__":
     logger.info("Validation successul")
 
     # Create bucket for model registry
-    make_model_registry_bucket(cfg)
+    # make_model_registry_bucket(cfg)
 
     # Assemble the .env file for the docker-compose stack
     assemble_env_file(cfg)
@@ -88,5 +88,5 @@ if __name__ == "__main__":
     # Append the secrets to the env file
     secrets = cfg.secrets_path
     logger.info(f"Appending the contents of {secrets} to the .env file")
-    sp.check_call(f"cat {secrets} >> ./setup/.env", shell=True)
+    sp.check_call(f"cat {secrets} >> ./training/setup/.env", shell=True)
     logger.info("Done")

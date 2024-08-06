@@ -23,9 +23,9 @@ services:
         env_file:
             - .env
         volumes:
-            - ../training/airflow/:/usr/local/airflow
+            - ../airflow/:/usr/local/airflow
             - ./scripts:/usr/local/airflow/scripts
-            - ./conf:/usr/local/airflow/conf
+            - ../../setup/conf:/usr/local/airflow/conf
         deploy:
             resources:
                 limits:
@@ -49,9 +49,9 @@ services:
         env_file:
             - .env
         volumes:
-            - ../training/airflow/:/usr/local/airflow
+            - ../airflow/:/usr/local/airflow
             - ./scripts:/usr/local/airflow/scripts
-            - ./conf:/usr/local/airflow/conf
+            - ../../setup/conf:/usr/local/airflow/conf
 
         user: "root"
         ports:
@@ -72,7 +72,7 @@ services:
       ports:
         - 5012:5012
       volumes:
-        - "${PWD}/../training/airflow/mlflow:/home/mlflow/"
+        - "${PWD}/../airflow/mlflow:/home/mlflow/"
       networks:
         - app-network
 

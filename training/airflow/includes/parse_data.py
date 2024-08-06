@@ -402,7 +402,7 @@ def _process_data(flist: List[str], db_path: str) -> None:
         name = os.path.basename(f)
         res[name] = compute_hash(f)
         logger.info(f"Processing {f}")
-        # process_one_dataset(f)
+        process_one_dataset(f)
     with open(db_path, "w") as fw:
         json.dump(res, fw, indent=4)
 

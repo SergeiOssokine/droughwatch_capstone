@@ -1,9 +1,7 @@
 #!/bin/bash
 echo "Building the image with lambda functions"
 curdir=$(pwd)
-cd inference/setup
-docker build -t inference:v0.1 .
-cd $curdir
+docker build --build-arg="PREFIX=inference/setup" -f inference/setup/Dockerfile -t inference:v0.1 .
 cd tests/integration_test_inference_pipeline/
 echo "Launching localstack"
 docker compose up  -d

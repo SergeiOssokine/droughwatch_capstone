@@ -121,7 +121,7 @@ def main(
         sys.exit(0)
 
     # Run the processing integration test
-    expectation_processing = {"sample_data/28_07_24/processed_part-r-00033": 27757899}
+    expectation_processing = {"sample_data/28_07_24/processed_part-r-00012": 18742513}
     payload_processing = {"data_bucket_name": "droughtwatch-data"}
     st = {
         "expectation": expectation_processing,
@@ -131,7 +131,7 @@ def main(
     integration_test(config, "processing", st)
 
     # Run the inference integration test
-    expectation_inference = {"sample_data/28_07_24/predictions.parquet": 14581}
+    expectation_inference = {"sample_data/28_07_24/predictions.parquet": 11453}
     payload_inference = {"body": {"data_bucket_name": "droughtwatch-data"}}
     st = {
         "expectation": expectation_inference,
@@ -143,14 +143,15 @@ def main(
     # Run the observability integration test
     expectation_observe = {
         "predictions_path": {0: "sample_data/28_07_24/predictions.parquet"},
-        "class_0_frac": {0: 0.4700854700854701},
-        "class_1_frac": {0: 0.10256410256410256},
-        "class_2_frac": {0: 0.15384615384615385},
-        "class_3_frac": {0: 0.27350427350427353},
-        "most_common_percentage": {0: 47.01},
+        "class_0_frac": {0: 0.569620253164557},
+        "class_1_frac": {0: 0.0759493670886076},
+        "class_2_frac": {0: 0.13924050632911392},
+        "class_3_frac": {0: 0.21518987341772153},
+        "most_common_percentage": {0: 56.96},
         "share_missing_values": {0: 0.0},
-        "prediction_drift": {0: 0.1674621565443287},
+        "prediction_drift": {0: 0.1342082050295861},
     }
+
     st = {
         "expectation": expectation_observe,
         "target": "db",

@@ -6,14 +6,8 @@ setup_env:
 download_data:
 	python ./utils/download_data.py
 
-build_training:
-	@( \
-		echo "Building the training image"; \
-		cd setup; \
-		docker build . -t droughtwatch_training \
-	)
 
-setup_training_infra: build_training
+setup_training_infra:
 	bash ./utils/setup_training_infra.sh
 
 launch_training_infra:
@@ -21,6 +15,11 @@ launch_training_infra:
 
 train_baseline:
 	bash ./training/scripts/launch_baseline.sh
+
+clean_up_training:
+	@( \
+		cd training/setup && docker compose down \
+	)
 
 integration_tests:
 	bash ./tests/integration_test_inference_pipeline/integration_tests.sh

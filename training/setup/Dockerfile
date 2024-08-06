@@ -1,5 +1,5 @@
 FROM apache/airflow:latest-python3.10
-
+ARG PREFIX=.
 USER root
 RUN apt-get update
 # We need these later
@@ -9,13 +9,13 @@ ENV AIRFLOW_HOME=/usr/local/airflow
 
 
 RUN pip install -U pip
-RUN pip install -U  uv 
+RUN pip install -U  uv
 
-COPY [ "requirements.txt",  "./" ]
+COPY [ "${PREFIX}/requirements.txt",  "./" ]
 
 RUN uv pip install --no-cache -r requirements.txt
 
 WORKDIR $AIRFLOW_HOME
-COPY scripts scripts
+COPY ${PREFIX}/scripts scripts
 
 USER $AIRFLOW_UID

@@ -1,6 +1,7 @@
 import base64
 import logging
 import os
+import subprocess as sp
 
 import boto3
 import docker
@@ -16,11 +17,6 @@ logger.addHandler(RichHandler(rich_tracebacks=True, markup=True))
 logger.setLevel("INFO")
 # Setup rich to get nice tracebacks
 install()
-
-
-def get_account_id():
-    client = boto3.client("sts")
-    return client.get_caller_identity()["Account"]
 
 
 def setup_terraform_default_vars(cfg: DictConfig, path_to_vars: str) -> None:
@@ -58,7 +54,6 @@ if __name__ == "__main__":
     setup_terraform_default_vars(cfg, TF_PATH)
     config = OmegaConf.to_container(cfg.infra)
     config.pop("training")
-    account_id = get_account_id()
     logger.info("Getting the auth token from ECR")
     ecr_client = boto3.client("ecr", region_name=config["aws_region"])
     response = ecr_client.get_authorization_token()
@@ -75,12 +70,15 @@ if __name__ == "__main__":
     )
     registry = adata["proxyEndpoint"]
     docker_client = docker.from_env()
-    TAG = "v0.1"
+    TAG = "v0.2"
     local_name = f"inference:{TAG}"
     logger.info(f"Building local image {local_name}")
-    docker_client.images.build(path="./inference/setup/", tag=local_name)
-    ecr_image = f"{registry[8:]}/{cfg.infra.inference.lambda_func.lambda_image_name}"
+    sp.check_call(
+        f'docker build --build-arg="PREFIX=inference/setup" -f inference/setup/Dockerfile -t {local_name} .',
+        shell=True,
+    )
 
+    ecr_image = f"{registry[8:]}/{cfg.infra.inference.lambda_func.lambda_image_name}"
     local_image = docker_client.images.get(local_name)
     logger.info(f"Tagging it with the remote uri: {ecr_image}")
     local_image.tag(ecr_image)

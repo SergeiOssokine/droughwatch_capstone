@@ -6,6 +6,7 @@ options in setup/conf/training
 import glob
 import logging
 import os
+import sys
 from typing import Any, Dict, List
 
 import keras
@@ -228,7 +229,7 @@ def train_cnn(cfg: DictConfig):
                 "Logging style was set to wandb, but the WANDB_API_KEY is not set."
                 "Make sure to change it inside the .env file!"
             )
-            exit(-1)
+            sys.exit(-1)
         wandb.login(key=key)
 
         # initialize wandb logging for your project and save your settings
@@ -275,8 +276,7 @@ def train_cnn(cfg: DictConfig):
         config_yaml = omegaconf.OmegaConf.to_yaml(cfg, resolve=True)
 
         if logging_style == "mlflow":
-            run_id = run.info.run_id
-            model_uri = f"runs:/{run_id}/model"
+            model_uri = f"runs:/{run.info.run_id}/model"
             mlflow.register_model(model_uri=model_uri, name=cfg.model.name)
             mlflow.onnx.log_model(onnx_model, "artifacts-generic")
             # Record the S3 path

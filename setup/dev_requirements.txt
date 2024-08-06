@@ -1,9 +1,11 @@
 boto3
 deepdiff
 docker
+evidently
 hydra-core
 mypy
 pre-commit
+psycopg
 pytest
 requests
 rich
