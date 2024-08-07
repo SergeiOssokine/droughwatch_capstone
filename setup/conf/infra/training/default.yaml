@@ -1,3 +1,5 @@
 defaults:
   - postgres: default
   - airflow: default
+
+use_gpu_training: ???

@@ -91,8 +91,11 @@ if __name__ == "__main__":
     sp.check_call(f"cat {secrets} >> ./training/setup/.env", shell=True)
     logger.info("Done")
 
-    # Set flag to use GPU
-    if cfg.infra.use_gpu_training:
-        os.symlink("docker-compose.gpu.yml", "./training/setup/docker-compose.yml")
+    # Choose the CPU or GPU docker variant depending on configuration
+    docker_config = "./training/setup/docker-compose.yml"
+    if os.path.isfile(docker_config):
+        os.unlink(docker_config)
+    if cfg.infra.training.use_gpu_training:
+        os.symlink("docker-compose.gpu.yml", docker_config)
     else:
-        os.symlink("docker-compose.cpu.yml", "./training/setup/docker-compose.yml")
+        os.symlink("docker-compose.cpu.yml", docker_config)

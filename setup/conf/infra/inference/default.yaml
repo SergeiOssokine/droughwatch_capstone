@@ -2,6 +2,7 @@ defaults:
   - lambda_func: default
   - step_function: default
   - scheduler: default
+  - database: default
 
 data_bucket: ???
 model_path: ???

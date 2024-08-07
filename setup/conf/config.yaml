@@ -21,8 +21,8 @@ training:
 
 infra:
   aws_region: us-east-1
-  use_gpu_training: 0
-  terraform_ml_inference_state_bucket: "terraform-state-8121e039-a4ec-4e7b-9b82-cdfc39520157"
+  training:
+    use_gpu_training: 1
   inference:
     data_bucket: "best_bucket_eva_123"
     model_path: "baseline"
