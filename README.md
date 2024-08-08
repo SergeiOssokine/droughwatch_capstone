@@ -160,7 +160,7 @@ Now we are ready to provision the infrastructure. Navigate to the top-level of t
 ```bash
 make provision_inference_infra
 ```
-This will launch the terraform process which will ask you to enter the username and password for the database. Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.
+This will launch the terraform process which will ask you to enter the username and password for the database. **Make sure the password you enter is at least 8 characters long!** Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.
 
 To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!)
 
