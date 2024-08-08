@@ -7,15 +7,22 @@ This project assumes that one is using Linux/MacOS locally. If on Windows, pleas
 
 In order to be able to execute this project you will need:
 - Python 3.10
-- docker with docker-compose
-- terraform
+- Docker with docker-compose
+- Terraform
 - aws cli
+- jq
+- GNU make
 
 You will also need an AWS account with sufficient priveleges.
 
 To manage python dependencies we use [uv](https://github.com/astral-sh/uv) as it is extremely fast and robust. Install it following the [official guidelines](https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started).
 
-Now you can setup the dev environment by running
+Throughout the project, `make` is used a lot. To see the full list of possible commands simply run
+```bash
+make
+```
+
+Setup the dev environment by running (this will use `uv` to create a new virtualenv and install all the necessary dependencies)
 
 ```bash
 make setup_env
