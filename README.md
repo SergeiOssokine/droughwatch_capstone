@@ -174,7 +174,7 @@ Simply execute it in another terminal window and the right ssh tunnel is created
 Finally run:
 
 ```bash
-make setup_observability
+make setup_inference_observability
 ```
 This will do the following:
 1. Launch a docker container running grafana

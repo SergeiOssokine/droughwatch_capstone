@@ -12,7 +12,6 @@ from rich.logging import RichHandler
 from rich.progress import Progress
 from rich.traceback import install
 from statemachine import StateMachine
-from typing_extensions import Annotated
 
 # Sets up the logger to work with rich
 logger = logging.getLogger(__name__)
@@ -35,8 +34,8 @@ def add_new_data(s3_client, bucket_name: str, data_file_path: str, date: str) ->
 
 
 def simulate_inference_on_data_add(
-    config: DictConfig, interval: float = 20.0, n_days=5
-):
+    config: DictConfig, interval: float = 20.0, n_days: int = 5
+) -> None:
     s3_client = boto3.client("s3")
     data_bucket = config.infra.inference.data_bucket
     pipeline_name = config.infra.inference.step_function.pipeline_name
@@ -53,7 +52,6 @@ def simulate_inference_on_data_add(
     with Progress() as progress:
         task = progress.add_task("[green] Processing...", total=n_days)
         for i, date in enumerate(date_list):
-
             data_file_path = os.path.join(data_dir, f"part-r-{i:05d}")
             # Upload the raw data
             add_new_data(s3_client, data_bucket, data_file_path, date)
