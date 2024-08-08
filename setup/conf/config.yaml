@@ -24,5 +24,5 @@ infra:
   training:
     use_gpu_training: 1
   inference:
-    data_bucket: "best_bucket_eva_123"
+    data_bucket: "droughtwatch-capstone-data-123"
     model_path: "baseline"

@@ -1,7 +1,12 @@
+
 variable "db_name" {
   type        = string
-  description = "The name of the database"
+  description = "The name of the main inference pipeline database"
 }
+
+
+# The credentials for the database. We make them sensitive so
+# they are never output by default
 variable "db_username" {
   type        = string
   description = "The default user to make"
@@ -11,12 +16,4 @@ variable "db_password" {
   type        = string
   description = "Password for the default user"
   sensitive   = true
-}
-variable "vpc_security_group_ids" {
-  type        = list(string)
-  description = "The list of security group ids"
-}
-variable "db_subnet_group_name" {
-  type        = string
-  description = "The db subnet"
 }

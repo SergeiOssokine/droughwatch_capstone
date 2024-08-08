@@ -1,0 +1,12 @@
+services:
+  grafana:
+    image: grafana/grafana
+    container_name: grafana
+    restart: unless-stopped
+    network_mode: "host"
+    user: '0'
+    # volumes:
+    #   - ./config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml
+    #   - ./dashboards:/opt/grafana/dashboards
+  mailhog:
+    build: .

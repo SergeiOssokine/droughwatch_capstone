@@ -80,7 +80,7 @@ if __name__ == "__main__":
     logger.info("Validation successul")
 
     # Create bucket for model registry
-    # make_model_registry_bucket(cfg)
+    make_model_registry_bucket(cfg)
 
     # Assemble the .env file for the docker-compose stack
     assemble_env_file(cfg)
@@ -92,10 +92,10 @@ if __name__ == "__main__":
     logger.info("Done")
 
     # Choose the CPU or GPU docker variant depending on configuration
-    docker_config = "./training/setup/docker-compose.yml"
-    if os.path.isfile(docker_config):
-        os.unlink(docker_config)
+    DOCKER_CONFIG = "./training/setup/docker-compose.yml"
+    if os.path.isfile(DOCKER_CONFIG):
+        os.unlink(DOCKER_CONFIG)
     if cfg.infra.training.use_gpu_training:
-        os.symlink("docker-compose.gpu.yml", docker_config)
+        os.symlink("docker-compose.gpu.yml", DOCKER_CONFIG)
     else:
-        os.symlink("docker-compose.cpu.yml", docker_config)
+        os.symlink("docker-compose.cpu.yml", DOCKER_CONFIG)

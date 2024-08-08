@@ -1,8 +1,14 @@
-model_bucket         = "model_bucket"
-data_bucket         = "data_bucket"
-
-processing_lambda_function_name = "processing_lambda"
-inference_lambda_function_name = "inference_lambda"
-
-processing_image_config_cmd = "lambda_function_processing.lambda_handler"
-inference_image_config_cmd = "lambda_function_inference.lambda_handler"
+processing_lambda_function_name	=	"processing_lambda"
+inference_lambda_function_name	=	"inference_lambda"
+observe_lambda_function_name	=	"observe_lambda"
+processing_image_config_cmd	=	"lambda_function_processing.lambda_handler"
+inference_image_config_cmd	=	"lambda_function_inference.lambda_handler"
+observe_image_config_cmd	=	"lambda_function_observe.lambda_handler"
+lambda_image_name	=	"droughtwatch-inference:v0.1"
+pipeline_name	=	"droughtwatch-inference"
+scheduler_name	=	"droughtwatch_pipeline_sc_trigger"
+time_interval	=	24
+db_name	=	"droughtwatch"
+data_bucket	=	"droughtwatch-capstone-data-123"
+model_path	=	"baseline"
+model_bucket	=	"droughtwatch-capstone-8121e039-a4ec-4e7b-9b82-cdfc39520157"

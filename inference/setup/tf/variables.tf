@@ -4,11 +4,6 @@ variable "aws_region" {
   type        = string
 }
 
-variable "project_id" {
-  description = "project_id"
-  default     = "mlops-zoomcamp"
-  type        = string
-}
 
 
 
@@ -84,6 +79,8 @@ variable "db_name" {
   type        = string
   description = "The name of the main inference pipeline database"
 }
+
+
 # The credentials for the database. We make them sensitive so
 # they are never output by default
 variable "db_username" {
@@ -99,6 +96,6 @@ variable "db_password" {
 
 
 variable "bastion_key" {
-  type = string
+  type        = string
   description = "The PUBLIC ssh key to access the bastion EC2 instance. Only rsa and ed25519 allowed"
 }

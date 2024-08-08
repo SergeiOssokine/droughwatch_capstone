@@ -79,7 +79,6 @@ resource "aws_db_subnet_group" "default" {
 module "bastion-host" {
   source            = "./modules/ec2"
   bastion_key       = var.bastion_key
-  vpc_id            = data.aws_vpc.default.id
   private_subnet_id = aws_subnet.db_subnet.id
   security_group_ids = [aws_security_group.bastion_sg.id]
   ecie_id = aws_ec2_instance_connect_endpoint.example.arn
@@ -169,7 +168,6 @@ module "inference_db" {
   db_password            = var.db_password
   vpc_security_group_ids = [aws_security_group.rds_sg.id]
   db_subnet_group_name   = aws_db_subnet_group.default.name
-  vpc_id               = data.aws_vpc.default.id
 }
 
 # Route table we need for the S3 vpc endpoint
@@ -279,6 +277,7 @@ resource "aws_vpc_security_group_ingress_rule" "ec2_ssh_ingress" {
   ip_protocol = "tcp"
   to_port     = 22
   referenced_security_group_id = aws_security_group.eic_sg.id
+  description = "Allows SSH access to bastion only from EIC endpoint"
 }
  # Allow all outbound traffic
 resource "aws_vpc_security_group_egress_rule" "ec2_ssh_egress" {
@@ -287,6 +286,7 @@ resource "aws_vpc_security_group_egress_rule" "ec2_ssh_egress" {
   ip_protocol = "-1"
   to_port     = 0
   cidr_ipv4 = "0.0.0.0/0"
+  description = "Allows bastion to connect anywhere within the subnet"
 }
 
 resource "aws_security_group" "eic_sg" {
@@ -328,6 +328,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_postgres_access" {
   to_port                      = 5432
   ip_protocol                  = "tcp"
   referenced_security_group_id = local.lambda_sg_ids[count.index]
+  description = "Allows lambda to connect to RDS for postgres"
 }
 
 
@@ -339,7 +340,7 @@ resource "aws_vpc_security_group_ingress_rule" "rds_inbound" {
   referenced_security_group_id = aws_security_group.bastion_sg.id
   security_group_id        = aws_security_group.rds_sg.id
 
-  description = "Rule to allow connections from EC2 instance"
+  description = "Allows bastion to connect to RDS for postgres"
 }
 
 
@@ -352,5 +353,5 @@ resource "aws_vpc_security_group_egress_rule" "ec2_outbound" {
   referenced_security_group_id = aws_security_group.rds_sg.id
   security_group_id        = aws_security_group.bastion_sg.id
 
-  description = "Rule to allow connections to droughtwatch from any instances this security group is attached to"
+  description = "Allows RDS to connect to bastion host for postgres"
 }
