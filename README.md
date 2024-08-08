@@ -41,6 +41,7 @@ The training data is large and thus we only want to download it once. You can do
 source .mlops/bin/activate
 make download_data
 ```
+Note that this will take a few minutes.
 
 ### Part II: Prepare the infrastructure
 
@@ -95,9 +96,7 @@ If everything looks right and no errors are returned deploy everything by runnin
 ```bash
 make launch_training_infra`
 ```
-This will take a while the first time you run it, as it will be necessary to pull and build the images.
-Check that you can access the `Airflow` server at `http://localhost:8080`. You can log in with
-the default password. You should see several DAGs.
+This will take a while the first time you run it, as it will be necessary to pull and build the images. This may take a while (5-10 minutes depending on the internet connection). Check that you can access the `Airflow` server at `http://localhost:8080` (it might take 2 minutes or so for the webserver to spin up). You can log in with the default password (`admin:admin`). You should see several DAGs.
 
 You are now all set to do the training!
 
@@ -145,7 +144,7 @@ make setup_inference_infra
 This will perform the following actions:
 1. Read the overall configuration (from `setup/conf`)
 2. Populate the terraform varibales based on this config (in `inference/setup/tf/vars/droughtwatch.tfvars`)
-3. Build the image for the lambda functions that will do all the work, and push to a private ECR repo.
+3. Build the image for the lambda functions that will do all the work, and push to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on the internet connection.
 
 Next, one requires to set up a new ssh keypair which will allow local access to the RDS database on AWS while being secure.
 
