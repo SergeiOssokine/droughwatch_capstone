@@ -43,7 +43,7 @@ def simulate_inference_on_data_add(
     payload = json.dumps(f'{{"data_bucket_name":"{data_bucket}"}}')
     # Upload the reference data
     logger.info(f"Uploading the reference data to {data_bucket}")
-    # add_new_data(s3_client, data_bucket, ref_data, "")
+    add_new_data(s3_client, data_bucket, ref_data, "")
     base = datetime.date(2024, 8, 7)
     date_list = [str(base + datetime.timedelta(days=x)) for x in range(n_days)]
     sfn = boto3.client("stepfunctions")
