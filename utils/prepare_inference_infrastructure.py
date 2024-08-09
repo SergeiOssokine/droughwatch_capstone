@@ -70,7 +70,7 @@ if __name__ == "__main__":
     )
     registry = adata["proxyEndpoint"]
     docker_client = docker.from_env()
-    TAG = "v0.2"
+    TAG = "v0.1"
     local_name = f"inference:{TAG}"
     logger.info(f"Building local image {local_name}")
     sp.check_call(
