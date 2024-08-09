@@ -5,7 +5,9 @@ disable = [
     "missing-module-docstring",
     "invalid-name",
     "too-few-public-methods",
-    "logging-fstring-interpolation"
+    "logging-fstring-interpolation",
+    "E0401",
+    "R0801"
 ]
 [tool.pylint.main]
 ignore-paths = ["^.mlops/.*"]
