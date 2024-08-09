@@ -34,7 +34,7 @@ def add_new_data(s3_client, bucket_name: str, data_file_path: str, date: str) ->
 
 
 def simulate_inference_on_data_add(
-    config: DictConfig, interval: float = 20.0, n_days: int = 5
+    config: DictConfig, interval: float = 20.0, n_days: int = 15
 ) -> None:
     s3_client = boto3.client("s3")
     data_bucket = config.infra.inference.data_bucket
