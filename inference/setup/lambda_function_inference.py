@@ -142,7 +142,7 @@ def package_predictions(model_results, case_ids):
 
 
 def get_new_cases(db_config):
-    with psycopg.connect(
+    with psycopg.connect(  # pylint: disable=E1129
         f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:

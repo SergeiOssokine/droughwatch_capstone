@@ -104,7 +104,7 @@ def compute_metrics(current_data: pd.DataFrame, ref_data: pd.DataFrame):
 
 
 def get_new_predictions(db_config):
-    with psycopg.connect(
+    with psycopg.connect(  # pylint: disable=E1129
         f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
     ) as conn:
@@ -134,7 +134,7 @@ def lambda_handler(event, context):
     port = db_config["port"]
     password = db_config["password"]
     predictions_list = get_new_predictions(db_config)
-    with psycopg.connect(
+    with psycopg.connect(  # pylint: disable=E1129
         f"host={host} port={port} user={user} dbname={DROUGHTWATCH_DB} password={password}",
         autocommit=True,
     ) as conn:
