@@ -31,6 +31,14 @@ LAMBDA_URL = "http://localhost:8080/2015-03-31/functions/function/invocations"
 
 
 def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
+    """Get database credentials from AWS secrets manager
+
+    Args:
+        endpoint_url (str | None, optional): The endpoint url to use. Defaults to None.
+
+    Returns:
+        Dict[str, str]: The secrets
+    """
     if endpoint_url:
         sm = boto3.client("secretsmanager", endpoint_url=endpoint_url)
     else:
@@ -43,7 +51,18 @@ def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
     return db_config
 
 
-def perform_checks(config, settings, container):
+def perform_checks(config: DictConfig, settings: Dict[str, Any], container) -> None:
+    """Perform the integration test checks. For processing and inference
+    lambdas, this involves checking that the right files were created at
+    right spots with right sizes. For observe lambda, this involves parsing
+    the database and making sure the results are correctly stored there
+
+    Args:
+        config (DictConfig): The overall config
+        settings (Dict[str,Any]): The settings for this particular test
+        container (_type_): The docker container that is running,
+            we need it in case we have to clean up.
+    """
     expectation = settings["expectation"]
     target = settings["target"]
 

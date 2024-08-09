@@ -17,7 +17,7 @@ You will also need an AWS account with sufficient priveleges.
 
 To manage python dependencies we use [uv](https://github.com/astral-sh/uv) as it is extremely fast and robust. Install it following the [official guidelines](https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started).
 
-Throughout the project, `make` is used a lot. To see the full list of possible commands simply run
+Throughout the project, `make` is used a lot. Note that whenever a `make` command is mentioned, it should be invoked at the top-level of the repo. To see the full list of possible commands simply run
 ```bash
 make
 ```
@@ -76,7 +76,7 @@ AWS_CREDENTIAL_EXPIRATION=2024-07-24T13:36:28+00:00
 Then, the user could change the values in `./setup/conf/config.yaml`.  Most importantly:
 - `training.model_registry_s3_bucket` Name of the S3 bucket that will be created to store models that are promoted to the model registry. **Make sure to pick a globally unique name** (using `uuidgen` may be helpful here)
 - `training.logging.style`. This determines whether the experiment tracking is done using WandB in the cloud  or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be `wandb` or `mlflow`.
-- `training.logging.wandb_org_name`. Name of the org created when setting up wandb. Only need to change this if wandb is used.
+- `training.logging.wandb_org_name`. Name of the org created when setting up wandb. Only need to change this if wandb is used, otherwise leave the default.
 - `infra.aws_region`. The region in which all AWS services will be deployed.
 - `infra.training.use_gpu_training`. Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities > 6 are supported. You will also need to set up the nvidia Docker toolkit, as described [here]().
 - `infra.inference.data_bucket`. The name of the bucket where new data will be added to run batch inference.

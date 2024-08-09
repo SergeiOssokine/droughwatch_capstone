@@ -45,7 +45,12 @@ def setup_sample(s3_client: boto3.client, path: str, bucket_name: str) -> None:
         _ = s3_client.upload_file(local_filepath, bucket_name, remote_filepath)
 
 
-def setup_secret(config):
+def setup_secret(config: DictConfig) -> None:
+    """Create a secret for the database connection
+
+    Args:
+        config (DictConfig): The overall test configuration
+    """
     sm = boto3.client("secretsmanager", endpoint_url=config.aws_endpoint_url)
     with open(config.db_secret, "r") as fp:
         secret_payload = json.dumps(json.load(fp))
@@ -83,7 +88,16 @@ def setup(config: DictConfig) -> None:
     setup_secret(config)
 
 
-def write_env_file(config, env_file_name=".env"):
+def write_env_file(config: DictConfig, env_file_name: str = ".env") -> None:
+    """Given the overall test configuration create a simple .env file
+    with those settings. This is a simple way of passing this config
+    to docker.
+
+    Args:
+        config (DictConfig): The overall test config
+        env_file_name (str, optional): The env file to generate.
+            Defaults to ".env".
+    """
     with open(env_file_name, "w") as fw:
         for key, value in config.items():
             fw.write(f"{key}={value}\n")

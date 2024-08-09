@@ -80,6 +80,7 @@ def prep_ledger(
 
 
 def lambda_handler(event, context):  # pylint: disable=unused-argument
+    """The processing lambda handler"""
     try:
         db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
         prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)

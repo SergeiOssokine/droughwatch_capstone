@@ -7,6 +7,14 @@ import psycopg
 
 
 def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
+    """Get the DB credentials from AWS secrets manager
+
+    Args:
+        endpoint_url (str | None, optional): The endpoint url to use. Defaults to None.
+
+    Returns:
+        Dict[str, str]: The DB secrets
+    """
     if endpoint_url:
         sm = boto3.client("secretsmanager", endpoint_url=endpoint_url)
     else:
@@ -20,7 +28,17 @@ def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
     return db_config
 
 
-def prep_db(db_config: Dict[str, str], db_name: str, create_table_statement: str):
+def prep_db(
+    db_config: Dict[str, str], db_name: str, create_table_statement: str
+) -> None:
+    """Check if a database exists and if it does not, create it, along with the
+    ledger table
+
+    Args:
+        db_config (Dict[str, str]): The db configuration
+        db_name (str): Name of the database to create
+        create_table_statement (str): The actual SQL statement to execute
+    """
     host = db_config["host"]
     port = db_config["port"]
     user = db_config["username"]
@@ -39,9 +57,22 @@ def prep_db(db_config: Dict[str, str], db_name: str, create_table_statement: str
             conn.execute(create_table_statement)
 
 
+SqlUpdate = namedtuple("SqlUpdate", ["field", "value"])
+
+
 def update_table(
-    table: str, db_name: str, update, cond: str, db_config: Dict[str, str]
-):
+    table: str, db_name: str, update: SqlUpdate, cond: str, db_config: Dict[str, str]
+) -> None:
+    """Generate SQL code to update a certain column in a given table and database
+
+    Args:
+        table (str): The table to update
+        db_name (str): The DB with the desired table
+        update (_type_): The SqlUpdate object describing the update
+        cond (str): The condition describing which rows to update
+        db_config (Dict[str, str]): The DB config
+    """
+
     sql_cmd = f"""
 UPDATE {table}
 SET {update.field} = '{update.value}'
@@ -54,6 +85,3 @@ WHERE {cond}
         with conn.cursor() as curr:
             print(sql_cmd)
             curr.execute(sql_cmd)
-
-
-SqlUpdate = namedtuple("SqlUpdate", ["field", "value"])
