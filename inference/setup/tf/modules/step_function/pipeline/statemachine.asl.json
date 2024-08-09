@@ -23,9 +23,9 @@
                     "BackoffRate": 2
                 }
             ],
-            "Next": "Processing_successful"
+            "Next": "Processing successful?"
         },
-        "Processing_successful": {
+        "Processing successful?": {
             "Type": "Choice",
             "Choices": [
                 {
@@ -33,12 +33,12 @@
                         "Variable": "$.statusCode",
                         "NumericEquals": 200
                     },
-                    "Next": "Fail"
+                    "Next": "Fail Processing"
                 }
             ],
             "Default": "Inference"
         },
-        "Fail": {
+        "Fail Processing": {
             "Type": "Fail"
         },
         "Inference": {
@@ -62,9 +62,9 @@
                     "BackoffRate": 2
                 }
             ],
-            "Next": "Inference_successful"
+            "Next": "Inference successful?"
         },
-        "Inference_successful": {
+        "Inference successful?": {
             "Type": "Choice",
             "Choices": [
                 {
@@ -72,12 +72,12 @@
                         "Variable": "$.statusCode",
                         "NumericEquals": 200
                     },
-                    "Next": "Fail (1)"
+                    "Next": "Fail Inference"
                 }
             ],
             "Default": "Observe"
         },
-        "Fail (1)": {
+        "Fail Inference": {
             "Type": "Fail"
         },
         "Observe": {
@@ -101,9 +101,9 @@
                     "BackoffRate": 2
                 }
             ],
-            "Next": "Observability_successful"
+            "Next": "Observability successful?"
         },
-        "Observability_successful": {
+        "Observability successful?": {
             "Type": "Choice",
             "Choices": [
                 {
@@ -111,12 +111,12 @@
                         "Variable": "$.statusCode",
                         "NumericEquals": 200
                     },
-                    "Next": "Fail (2)"
+                    "Next": "Fail Observability"
                 }
             ],
             "Default": "Success"
         },
-        "Fail (2)": {
+        "Fail Observability": {
             "Type": "Fail"
         },
         "Success": {
