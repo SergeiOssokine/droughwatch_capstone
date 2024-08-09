@@ -16,15 +16,19 @@ cd inference/observability
 docker compose down
 rm tf/*.tfstate*
 rm -rf tf/*.terraform*
-cd $orgidir
+cd $origdir
 
 # Clean up the AWS resources provisioned by terraform
+pwd
 cd inference/setup/tf
+
+
 printf '=%.0s' {1..80}
+echo
 echo "Cleaning up AWS resources provisioned with terraform"
 echo "This may take up to 30 minutes"
 printf '=%.0s' {1..80}
 sleep 2
-terraform destroy -vars-file ./vars/droughtwatch.tfvars
+terraform destroy -var-file ./vars/droughtwatch.tfvars
 echo
 echo "Clean up complete. Double check you AWS resources on the AWS CloudConsole!"
