@@ -144,7 +144,7 @@ make setup_inference_infra
 This will perform the following actions:
 1. Read the overall configuration (from `setup/conf`)
 2. Populate the terraform varibales based on this config (in `inference/setup/tf/vars/droughtwatch.tfvars`)
-3. Build the image for the lambda functions that will do all the work, and push to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on the internet connection.
+3. Build the image for the lambda functions that will do all the work, and push to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on the internet connection. (Note: sometimes it may complain and give a timeout error; just rerun the make command)
 
 Next, one requires to set up a new ssh keypair which will allow local access to the RDS database on AWS while being secure.
 
@@ -207,3 +207,34 @@ make clean_up_infra
 ```
 
 At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found [here]().
+
+
+## Testing
+### Unit tests
+The unit tests perform some minor checks and can be run with
+
+```bash
+make unit_tests
+```
+
+### Integration test
+The integration test will test the 3 most important components of the inference pipeline, namely the 3 lambda functions. For a detailed description, see [here](). This is done by spinning up `localstack` to emulate `S3` and `secretsmanager` as well as:
+- 3 containers representing the 3 lambdas
+- a postgres database container
+
+The test then runs the lambdas inside the container and checks that they perform as expected. In particular, for the `processing` and `inference` lambdas, it checks that the functions create the appropriate result files with expected sizes. For the `observe` lambda, it checks that the database contains a metrics table with the expected metrics.
+
+To run the integration test, do
+
+```bash
+make integration_tests
+```
+
+### CI/CD
+Github Actions are set up to run the unit and integration tests on every merge requests to the main branch.
+
+
+
+- `lambda_processing`: processes data from raw to for ready for the model, also creates and checks a ledger to keep track of what has been processed, in a SQL database
+- `lambda_inference`: runs the actual model on the processed data and generates the predictions. Also records this in the ledger DB
+- `lambda_observe`:
