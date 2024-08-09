@@ -42,6 +42,9 @@ integration_tests: ## Run the integration test on the lambda functions
 clean_up_infra: ## Delete all infrastructure resources for inference. Includes all AWS as well as grafana things
 	bash ./utils/clean_up_infra.sh
 
+unit_tests: ## Run the unit tests
+	pytest -vvv tests/unit_tests
+
 .PHONY: help
 
 
