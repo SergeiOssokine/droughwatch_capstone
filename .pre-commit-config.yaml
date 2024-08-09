@@ -22,7 +22,6 @@ repos:
         name: Sorting imports with isort
         args:
           - "--profile=black"
-
   - repo: https://github.com/nbQA-dev/nbQA
     rev: 1.8.5
     hooks:

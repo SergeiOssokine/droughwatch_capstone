@@ -44,6 +44,11 @@ clean_up_infra: ## Delete all infrastructure resources for inference. Includes a
 
 .PHONY: help
 
+
+quality_check: ## Run some quality checks by hand
+	pre-commit run --all-files black
+	pre-commit run --all-files isort
+	pylint --verbose --recursive=y .
 help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
 
