@@ -157,7 +157,6 @@ def serialize_data(element: Tuple[Dict[str, Tensor], Tensor], assign_id=False) -
     feature["label"] = tf.train.Feature(int64_list=tf.train.Int64List(value=[label]))
     if assign_id:
         id = uuid.uuid4().hex
-        print(id, id.encode("utf-8"))
         feature["id"] = tf.train.Feature(
             bytes_list=tf.train.BytesList(value=[id.encode("utf-8")])
         )
