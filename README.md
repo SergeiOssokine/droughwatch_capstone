@@ -7,10 +7,10 @@ This project assumes that one is using Linux/MacOS locally. If on Windows, pleas
 
 In order to be able to execute this project you will need:
 - Python 3.10
-- Docker with docker-compose
-- Terraform
-- aws cli
-- jq
+- Docker (v27.0 or later) with docker compose
+- Terraform (v1.9.3 or later)
+- aws cli==2.17.5
+- jq-1.6
 - GNU make
 
 You will also need an AWS account with sufficient priveleges.
@@ -152,7 +152,7 @@ Next, one requires to set up a new ssh keypair which will allow local access to 
 cd inference/setup/tf/modules/ec2
 ssh-keygen  -t ed25519
 ```
-Select `./id_ed25119` to be the path and you can leave the passphrase blank.
+Select `./id_ed25519` to be the path and you can leave the passphrase blank.
 
 Now we are ready to provision the infrastructure. Navigate to the top-level of the repo and run
 
@@ -199,7 +199,11 @@ Then you can monitor the progress in a variety of ways:
 
 You can of course upload more data to the data bucket and trigger the StepFunction with the AWS UI or from the cli.
 
-Once you are done experimenting, clean up the infrastructure by running (WARNING: this will delete all provisioned resources, including the S3 bucket which has the model and the ECR repository)
+Once you are done experimenting, clean up the infrastructure by running
+**WARNING: this will delete all provisioned resources, including the S3 bucket which has the model and the ECR repository**
+
+```bash
+make clean_up_infra
 ```
-make cleanup_infra
-``
+
+At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found [here]().
