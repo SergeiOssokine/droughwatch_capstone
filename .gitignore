@@ -164,3 +164,6 @@ cython_debug/
 
 # Secrets
 .secrets
+
+# Terraform state
+*.tfstate
