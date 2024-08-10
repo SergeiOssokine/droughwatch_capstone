@@ -206,7 +206,7 @@ Once you are done experimenting, clean up the infrastructure by running
 make clean_up_infra
 ```
 
-At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found [here]().
+At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found [here]().  **Note you will have to make sure to delete the CloudWatch logs!**
 
 
 ## Testing
