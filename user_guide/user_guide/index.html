@@ -64,7 +64,7 @@
     <div data-md-component="skip">
       
         
-        <a href="#droughwatch_capstone" class="md-skip">
+        <a href="#droughtwatch-capstone-project" class="md-skip">
           Skip to content
         </a>
       
@@ -259,6 +259,15 @@
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
       
         <li class="md-nav__item">
+  <a href="#background-and-problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background and problem statement
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#initial-setup" class="md-nav__link">
     <span class="md-ellipsis">
       Initial setup
@@ -438,6 +447,27 @@
 
               
             
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../inference_pipeline/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inference pipeline in detail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
           </ul>
         </nav>
       
@@ -487,7 +517,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_docs/python_docs_training.md" class="md-nav__link">
+      <a href="../../python_docs/python_docs_training/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -508,7 +538,7 @@
   
   
     <li class="md-nav__item">
-      <a href="../../python_docs/python_docs_inference.md" class="md-nav__link">
+      <a href="../../python_docs/python_docs_inference/" class="md-nav__link">
         
   
   <span class="md-ellipsis">
@@ -554,6 +584,15 @@
       Table of contents
     </label>
     <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background-and-problem-statement" class="md-nav__link">
+    <span class="md-ellipsis">
+      Background and problem statement
+    </span>
+  </a>
+  
+</li>
       
         <li class="md-nav__item">
   <a href="#initial-setup" class="md-nav__link">
@@ -720,8 +759,8 @@
                   
 
 
-<h1 id="droughwatch_capstone">droughwatch_capstone</h1>
-<p>Use ML to predict the quality of soil from satellite images</p>
+<h1 id="droughtwatch-capstone-project">Droughtwatch capstone project</h1>
+<h2 id="background-and-problem-statement">Background and problem statement</h2>
 <h2 id="initial-setup">Initial setup</h2>
 <p>This project assumes that one is using Linux/MacOS locally. If on Windows, please run inside WSL2.</p>
 <p>In order to be able to execute this project you will need:</p>
@@ -823,7 +862,7 @@ If using <code>wandb</code> you should also see the run appear under <code>USENR
 <p>This will bring down all the docker containers we have deployed.</p>
 <h2 id="inference">Inference</h2>
 <h3 id="part-i-setting-up-the-infrastructure">Part I: Setting up the infrastructure</h3>
-<p>The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a more detailed description, see <a href="">here</a>.</p>
+<p>The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a much more detailed description, see <a href="../inference_pipeline/">here</a>.</p>
 <p>First thing to do is to configure the infrastructure for inference. To do so, run</p>
 <pre><code class="language-bash">make setup_inference_infra
 </code></pre>
