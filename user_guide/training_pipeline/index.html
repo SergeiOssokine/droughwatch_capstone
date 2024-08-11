@@ -1,0 +1,661 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../user_guide/">
+      
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.31">
+    
+    
+      
+        <title>Training pipeline in detail - Droughtwatch Capstone Project</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.3cba04c6.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#the-training-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Droughtwatch Capstone Project" class="md-header__button md-logo" aria-label="Droughtwatch Capstone Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Droughtwatch Capstone Project
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Training pipeline in detail
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Droughtwatch Capstone Project" class="md-nav__button md-logo" aria-label="Droughtwatch Capstone Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Droughtwatch Capstone Project
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user_guide/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    Training pipeline in detail
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    Training pipeline in detail
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      The model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airflow-pipeline-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Airflow pipeline in detail
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Airflow pipeline in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflow-ui-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Airflow UI exploration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wandb-ui-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      WandB UI Exploration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Python API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Python API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_docs/python_docs_training.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Training module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_docs/python_docs_inference.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inference module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      Overview
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      The model
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#airflow-pipeline-in-detail" class="md-nav__link">
+    <span class="md-ellipsis">
+      Airflow pipeline in detail
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Airflow pipeline in detail">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#code-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code structure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#airflow-ui-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      Airflow UI exploration
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#wandb-ui-exploration" class="md-nav__link">
+    <span class="md-ellipsis">
+      WandB UI Exploration
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="the-training-pipeline">The training pipeline</h1>
+<h2 id="overview">Overview</h2>
+<p>The training process is orchastrated using <a href="https://airflow.apache.org/docs/apache-airflow/stable/index.html">Apache Airflow</a>. Airflow is a mature, robust and well-documented open-soruce workflow engine, that is <a href="https://www.astronomer.io/state-of-airflow/">extremely widely used</a>.</p>
+<p>The diagram below shows the overall architecture of the training pipeline. The entire training environment is inside a Docker container for reproducibility and ease of deployment.</p>
+<p><img alt="" src="../imgs/architecture_training.svg" /></p>
+<p>The tasks to be performed are organized in DAGs (Directed Acyclic Graphs), where each node corresponds to a given task. Airflow keeps track of the dependencies between tasks, as well as the logging of each task execution and the scheduling of the DAGs. Given that our model uses a large amount of data, we didn't opt to add the downloading of the raw data as a task in a DAG, instead having <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/utils/download_data.py">a script</a> that downloads the data to local storage.</p>
+<p>The raw data is in the form of about a hundred of Tensforflow <a href="https://www.tensorflow.org/tutorials/load_data/tfrecord">TFRecord files</a>, which is an efficient binary storage format for Tensor data sets. The raw data is not quite suitable for training and thus we transform it by:
+- normalizing the data in every band to be in the range [0,1]
+- vetoing completely blank observations (defined as having no intensity in any pixel in any band)</p>
+<p>We also add several derived features which can be useful in training, namely:</p>
+<ul>
+<li>Normalized Difference Vegetative Index (NDVI)</li>
+<li>Normalized Difference Moisture Index (NDMI)</li>
+<li>Enhanced Vegetative Index (EVI)</li>
+</ul>
+<p>These indices are constructed specifically to assess the presence of vegetation and moisture from satallite imagery. For more information, see <a href="https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices">here</a> The updated data is then written back to disk as TFRecord files, so that it can be used for training.</p>
+<p>The model is constructed in Keras and then trained on the processed data. During this process, the user has a choice of which experimentation tracking system to use. By default, the code uses <a href="https://wandb.ai/">Weights and Biases Cloud platform</a>. This allows for easy, convenient and comprehensive tracking. The other choice is MLFlow, which runs in the same container as the Airflow server. After the model is trained, depending on the settings, it is promoted to the model registry, either in WandB or MLFlow. Regardless of the service used, the model is also uploaded to S3 so it can be used later for inference. To ensure maximum efficiency and portability, the model is converted from the native Keras format to the <a href="https://onnx.ai/">ONNX standard</a> which produces highly efficient models for inference.</p>
+<p><strong>Thus the basic DAG has two steps: i) Data processing ii) Model training.</strong></p>
+<h2 id="the-model">The model</h2>
+<p>The model we choose to be the base for this project is a simple CNN architecture, since modelling is not the focus of this project. This model takes in images in any of the provided bands/derived features and attempts to predict the labels, which correspond to the number of goats that can be supported. The summary of the baseline model can be seen below:</p>
+<p><img alt="" src="../imgs/model_resized.png" /></p>
+<p>The training data contains  a class imbalance: 60% of all labels are of class 0 (poor forage quality). To compensate we use direct class weights defined as follows:</p>
+<ul>
+<li>class 0: 1</li>
+<li>class 1: 4</li>
+<li>class 2: 4</li>
+<li>class 3: 6</li>
+</ul>
+<p>We use a standard cross-entropy categorical loss. The user can eaily adjust the following parameters through the config files:</p>
+<ul>
+<li>learning rate</li>
+<li>batch size</li>
+<li>list of features to use</li>
+</ul>
+<p>For simplicity, only the baseline model is set to be commited to the model registry. In reality one would run a whole series of experiments and then pick the model based on the results. However, we also provide DAGs to train some other models, that vary the features that the model is trained on as well as the amount of epochs the model is trained.</p>
+<h2 id="airflow-pipeline-in-detail">Airflow pipeline in detail</h2>
+<h3 id="code-structure">Code structure</h3>
+<p>All the DAGs are currently defined in <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/dags/pipeline.py">one file</a>. This choice was made in order to <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/dags/pipeline.py#L17">eaily reuse</a> the first part of any DAG, which is to preprocess the data. There are only 2 tasks in each DAG, each defined as a <code>PythonOperator</code>, which is just a Python function. We separate the the actual code that does the tasks from the task definitions, with the preprocessing done <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/includes/parse_data.py">here</a> and the training <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/includes/train.py">here</a>. There is extensive logging to enable easier debugging, as well as <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/tests/unit_tests/test_parse_data.py">unit tests</a> to test some of the functionality.</p>
+<h3 id="airflow-ui-exploration">Airflow UI exploration</h3>
+<p>Once the training pipeline has been deployed as described <a href="">here</a>, its state can be easily examined in the Airflow UI and it can be seen below:</p>
+<p><img alt="" src="../imgs/airflow_1.png" /></p>
+<p>By default, all the DAGs we included are paused, which means that they are inactive. The <code>baseline</code> DAG is scheduled to run at midnight every day, while the rest (the models for experimentation) are required to be manually triggered (which can be done in the UI by pressing the "play" button). Using either the provided <code>make train_baseline</code> command, or the UI we can unpause the baseline DAG which will cause it to run, as illustrated below.</p>
+<p><img alt="" src="../imgs/airflow_2.png" /></p>
+<p>Clicking on the DAG name will show the overview screen. From here one can see the actual graph itself by navigating to the <code>Graph</code> section.
+To see the process of execution, click on any of the boxes and then click "Logs". An example for the training task can be seen below
+<img alt="" src="../imgs/airflow_3.png" /></p>
+<p>When everything is finished you will see (if you used WandB for logging):</p>
+<p><img alt="" src="../imgs/airflow_4.png" /></p>
+<h3 id="wandb-ui-exploration">WandB UI Exploration</h3>
+<p>When the training task from the baseline DAG starts executing, it will create a project called <code>droughtwatch_capstone</code> in the default namespace. Clicking on it will bring up a list of runs, which should now contain something like <code>baseline_XXXX</code> where the <code>XXXX</code> is generated randomly as an ID for the run. Clicking "Overview" in the left panel menu will bring up some general information about the run and the hardware it is being run on:</p>
+<p><img alt="" src="../imgs/wandb_running.png" /></p>
+<p>Scrolling down we can see some of the things WandB has already logged:</p>
+<p><img alt="" src="../imgs/wandb_running_config.png" /></p>
+<p>Once the run has a couple of epochs, click on "Worksapce" to see some of the logged metrics:</p>
+<p><img alt="" src="../imgs/wandb_finished_workspace.png" /></p>
+<p>The logged metrics are (these are logged for both the training set and for the validation set):</p>
+<ul>
+<li>Precision and recall for every class (<code>pr_*</code> and <code>re_*</code>). These are arrays <em>at every epoch</em> since they correspond to the precision and recall on a <em>set</em> of thresholds, allowing one to construct the <code>precision-recall</code> or alterntively ROC curve for every class at every epoch</li>
+<li>Accuracy</li>
+<li>Loss</li>
+</ul>
+<p>Once the run is complete,if it was configured to do so, it is automatically added to the model registry (by default only the baseline model is configured to be added):</p>
+<p><img alt="" src="../imgs/wandb_registry_1.png" /></p>
+<p>Clicking on the collection also shows the model lineage, linking the model with the run:</p>
+<p><img alt="" src="../imgs/wandb_registry_2.png" /></p>
+<p>Finally one can examine the link to S3 by clicking on the "Files" tab, to see</p>
+<p><img alt="" src="../imgs/wandb_registry_linked_run.png" /></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>

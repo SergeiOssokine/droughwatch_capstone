@@ -1,0 +1,957 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+      
+        <link rel="prev" href="../..">
+      
+      
+        <link rel="next" href="../training_pipeline/">
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.0, mkdocs-material-9.5.31">
+    
+    
+      
+        <title>User Guide - Droughtwatch Capstone Project</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.3cba04c6.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce((e,_)=>(e<<5)-e+_.charCodeAt(0),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+    
+  </head>
+  
+  
+    <body dir="ltr">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#droughwatch_capstone" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="Droughtwatch Capstone Project" class="md-header__button md-logo" aria-label="Droughtwatch Capstone Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3V6m0 5h18v2H3v-2m0 5h18v2H3v-2Z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            Droughtwatch Capstone Project
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    
+      <script>var media,input,key,value,palette=__md_get("__palette");if(palette&&palette.color){"(prefers-color-scheme)"===palette.color.media&&(media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']"),palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent"));for([key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="Droughtwatch Capstone Project" class="md-nav__button md-logo" aria-label="Droughtwatch Capstone Project" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54Z"/></svg>
+
+    </a>
+    Droughtwatch Capstone Project
+  </label>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Home
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            User Guide
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  <span class="md-ellipsis">
+    User Guide
+  </span>
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-the-documentation-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the documentation (optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training the model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training the model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-i-get-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part I: Get the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-ii-prepare-the-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part II: Prepare the infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-iii-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part III: Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-i-setting-up-the-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part I: Setting up the infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-ii-running-inference-and-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part II: Running inference and observability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unit tests
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI/CD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code quality
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../training_pipeline/" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Training pipeline in detail
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+            
+  
+  <span class="md-ellipsis">
+    Python API
+  </span>
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            Python API
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_docs/python_docs_training.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Training module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../python_docs/python_docs_inference.md" class="md-nav__link">
+        
+  
+  <span class="md-ellipsis">
+    Inference module
+  </span>
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#initial-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      Initial setup
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Initial setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#building-the-documentation-optional" class="md-nav__link">
+    <span class="md-ellipsis">
+      Building the documentation (optional)
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#training-the-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      Training the model
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Training the model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-i-get-the-data" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part I: Get the data
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-ii-prepare-the-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part II: Prepare the infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-iii-training" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part III: Training
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#inference" class="md-nav__link">
+    <span class="md-ellipsis">
+      Inference
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Inference">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#part-i-setting-up-the-infrastructure" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part I: Setting up the infrastructure
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#part-ii-running-inference-and-observability" class="md-nav__link">
+    <span class="md-ellipsis">
+      Part II: Running inference and observability
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      Testing
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      Unit tests
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#integration-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      Integration test
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cicd" class="md-nav__link">
+    <span class="md-ellipsis">
+      CI/CD
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#code-quality" class="md-nav__link">
+    <span class="md-ellipsis">
+      Code quality
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+<h1 id="droughwatch_capstone">droughwatch_capstone</h1>
+<p>Use ML to predict the quality of soil from satellite images</p>
+<h2 id="initial-setup">Initial setup</h2>
+<p>This project assumes that one is using Linux/MacOS locally. If on Windows, please run inside WSL2.</p>
+<p>In order to be able to execute this project you will need:</p>
+<ul>
+<li>Python 3.10</li>
+<li>Docker (v27.0 or later) with docker compose</li>
+<li>Terraform (v1.9.3 or later)</li>
+<li>aws cli==2.17.5</li>
+<li>jq-1.6</li>
+<li>GNU make</li>
+</ul>
+<p>You will also need an AWS account with sufficient priveleges.</p>
+<p>To manage python dependencies we use <a href="https://github.com/astral-sh/uv">uv</a> as it is extremely fast and robust. Install it following the <a href="https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started">official guidelines</a>.</p>
+<p>Throughout the project, <code>make</code> is used a lot. Note that whenever a <code>make</code> command is mentioned, it should be invoked at the top-level of the repo. To see the full list of possible commands simply run</p>
+<pre><code class="language-bash">make
+</code></pre>
+<p>Setup the dev environment by running (this will use <code>uv</code> to create a new virtualenv and install all the necessary dependencies)</p>
+<pre><code class="language-bash">make setup_env
+</code></pre>
+<p>Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took 1 hour to train on NVidia GTX 1060 6GB</p>
+<h3 id="building-the-documentation-optional">Building the documentation (optional)</h3>
+<p>You can build and view a nicely rendered version of this document as well as additional documentation by simply running</p>
+<pre><code class="language-bash">mkdocs serve -a 'localhost:7777'
+</code></pre>
+<p>and pointing your browser to <code>http://localhost:7777</code></p>
+<h2 id="training-the-model">Training the model</h2>
+<p>For a much more  detailed description, see <a href="../training_pipeline/">here</a>.</p>
+<h3 id="part-i-get-the-data">Part I: Get the data</h3>
+<p>The training data is large and thus we only want to download it once. You can do this by running</p>
+<pre><code class="language-bash">source .mlops/bin/activate
+make download_data
+</code></pre>
+<p>Note that this will take a few minutes.</p>
+<h3 id="part-ii-prepare-the-infrastructure">Part II: Prepare the infrastructure</h3>
+<p>The training pipeline is managed by <code>Airflow</code> DAGs, which takes care of data preparation and actual training using <code>Keras</code>. The experimentation tracking can either be done:</p>
+<ul>
+<li>locally with  <code>MLFlow</code> or</li>
+<li>on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your <code>WANDB_API_KEY</code> (see below)</li>
+</ul>
+<p>To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in <code>./setup/conf</code>. For more details on training pipeline, see <a href="">here</a>.</p>
+<p>First the user <em>must</em> set up a secrets file, which will contain the AWS (and optionally WANDB credentials). This should be a file in standard <code>.env</code> format. Here is one example of how it can be created (assuming one is using WandB):</p>
+<pre><code class="language-bash">cd setup
+export WANDB_API_KEY=XXXX
+echo &quot;WANDB_API_KEY=${WANDB_API_KEY}&quot; &gt; .secrets
+
+aws configure sso # If using SSO credentials
+aws configure export-credentials --format env-no-export &gt;&gt; .secrets
+</code></pre>
+<p>You should have something like this in <code>.secrets</code></p>
+<pre><code class="language-bash">WANDB_API_KEY=XXXX
+AWS_ACCESS_KEY_ID=YYYYYYYYY
+AWS_SECRET_ACCESS_KEY=ZZZZZZZZZZZZZZZZ
+AWS_SESSION_TOKEN=REALLY_LONG_STRING
+AWS_CREDENTIAL_EXPIRATION=2024-07-24T13:36:28+00:00
+</code></pre>
+<p>Then, the user could change the values in <code>./setup/conf/config.yaml</code>.  Most importantly:</p>
+<ul>
+<li><code>training.model_registry_s3_bucket</code> Name of the S3 bucket that will be created to store models that are promoted to the model registry. <strong>Make sure to pick a globally unique name</strong> (using <code>uuidgen</code> may be helpful here)</li>
+<li><code>training.logging.style</code>. This determines whether the experiment tracking is done using WandB in the cloud  or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be <code>wandb</code> or <code>mlflow</code>.</li>
+<li><code>training.logging.wandb_org_name</code>. Name of the org created when setting up wandb. Only need to change this if wandb is used, otherwise leave the default.</li>
+<li><code>infra.aws_region</code>. The region in which all AWS services will be deployed.</li>
+<li><code>infra.training.use_gpu_training</code>. Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities &gt; 6 are supported. You will also need to set up the nvidia Docker toolkit, as described <a href="">here</a>.</li>
+<li><code>infra.inference.data_bucket</code>. The name of the bucket where new data will be added to run batch inference.</li>
+<li><code>model_path</code>: Which model in the <code>model_registry_s3_bucket</code> to use. WARNING: only change this if you intend to train more than just the default baseline model.</li>
+</ul>
+<p>Once all done, deploy the training infrastructure docker by doing</p>
+<pre><code class="language-bash">make setup_training_infra
+</code></pre>
+<p>This will produce a lot of output, including a yaml representation of the project configuration. It will also
+setup the s3 bucket needed to hold models that will be promoted to the model registry.</p>
+<p>If everything looks right and no errors are returned deploy everything by running</p>
+<pre><code class="language-bash">make launch_training_infra
+</code></pre>
+<p>This will take a while the first time you run it, as it will be necessary to pull and build the images. This may take a while (5-10 minutes depending on the internet connection). Check that you can access the <code>Airflow</code> server at <code>http://localhost:8080</code> (it might take 2 minutes or so for the webserver to spin up). You can log in with the default password (<code>admin:admin</code>). You should see several DAGs.</p>
+<p>You are now all set to do the training!</p>
+<h3 id="part-iii-training">Part III: Training</h3>
+<p>To train the most basic model, simply do</p>
+<pre><code class="language-bash">make train_baseline
+</code></pre>
+<p>This will trigger the <code>baseline</code> dag (you may have to reload the Airflow UI webpage to see the progress).
+Note that the first time you trigger this, it will start by pre-processing the image data (filtering and feature engineering). Since there is a lot of data (&gt;100l images) this may take a few minutes (~10). Once the <code>data_processing</code> task is done, you should be able to see the training progress either on <code>MLFlow</code>(point your browser to <code>localhost:5012</code>) or <code>wandb</code>.
+If using <code>wandb</code> you should also see the run appear under <code>USENRAME/droughtwatch_capstone</code> project. It should take 10 minutes to train on the GPU.  You should see the standard metrics like training and validation accuracy and loss, as well as others.</p>
+<p>The DAG is configured to run every 24 hours to retrain the model in case new data is added.</p>
+<p>At the end of this training the model and all parameters and metrics are logged, and:</p>
+<ul>
+<li>the model is uploaded to s3</li>
+<li>the model is promoted to the model registry</li>
+</ul>
+<p>This is in principle all one needs to do in order to proceed with model deployment. However, you can also train a few more interesting models if you wish</p>
+<ul>
+<li><code>useful</code>- just like baseline but with 100 epochs and thus much better accuracy</li>
+<li><code>ndvi</code> - uses NDVI as the feature instead of the RGB+NIR bands</li>
+<li><code>nd</code> - uses NDVI + NDMI as features instead of RGB+NIR</li>
+</ul>
+<p>You can easily add your own by adding to the file <code>./training/airflow/dags/pipeline.py</code></p>
+<p>When you are done with training, clean up by running:</p>
+<pre><code class="language-bash">make clean_up_training
+</code></pre>
+<p>This will bring down all the docker containers we have deployed.</p>
+<h2 id="inference">Inference</h2>
+<h3 id="part-i-setting-up-the-infrastructure">Part I: Setting up the infrastructure</h3>
+<p>The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a more detailed description, see <a href="">here</a>.</p>
+<p>First thing to do is to configure the infrastructure for inference. To do so, run</p>
+<pre><code class="language-bash">make setup_inference_infra
+</code></pre>
+<p>This will perform the following actions:</p>
+<ol>
+<li>Read the overall configuration (from <code>setup/conf</code>)</li>
+<li>Populate the terraform varibales based on this config (in <code>inference/setup/tf/vars/droughtwatch.tfvars</code>)</li>
+<li>Build the image for the lambda functions that will do all the work, and push to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on the internet connection. (Note: sometimes it may complain and give a timeout error; just rerun the make command)</li>
+</ol>
+<p>Next, one requires to set up a new ssh keypair which will allow local access to the RDS database on AWS while being secure.</p>
+<pre><code>cd inference/setup/tf/modules/ec2
+ssh-keygen  -t ed25519
+</code></pre>
+<p>Select <code>./id_ed25519</code> to be the path and you can leave the passphrase blank.</p>
+<p>Now we are ready to provision the infrastructure. Navigate to the top-level of the repo and run</p>
+<pre><code class="language-bash">make provision_inference_infra
+</code></pre>
+<p>This will launch the terraform process which will ask you to enter the username and password for the database. <strong>Make sure the password you enter is at least 8 characters long!</strong> Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.</p>
+<p>To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!)</p>
+<pre><code class="language-bash">bash inference/observability/create_rds_tunnel.sh /path/to/your/private/key
+</code></pre>
+<p>This will produce a command that looks like the following</p>
+<pre><code>ssh -i /home/sergei/.ssh/id_ed25519 ubuntu@i-0be7a30f923f2d693 -o ServerAliveInterval=30 -o ProxyCommand='aws ec2-instance-connect open-tunnel --instance-id i-0be7a30f923f2d693' -L 5432:droughtwatch.cbesic40wlrm.us-east-1.rds.amazonaws.com:5432
+</code></pre>
+<p>Simply execute it in another terminal window and the right ssh tunnel is created.
+Finally run:</p>
+<pre><code class="language-bash">make setup_inference_observability
+</code></pre>
+<p>This will do the following:
+1. Launch a docker container running grafana
+2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same username and password again.</p>
+<p>That's it!</p>
+<h3 id="part-ii-running-inference-and-observability">Part II: Running inference and observability</h3>
+<p>First we need to upload some data to s3 for our model to ingest. While 24 hours is a reasonable cadence for real-world scenarios with satellite data, for demonstration purposes we don't want to wait that long. Thus we provide a script that:
+- Upload a new set of data every 20 seconds for a total of 15 datasets
+- Runs the inference pipeline on it (and blocks until each run is finished)</p>
+<p>You can launch the script by running</p>
+<pre><code class="language-bash">make upload_and_run_inference
+</code></pre>
+<p>Then you can monitor the progress in a variety of ways:</p>
+<ol>
+<li>On AWS CloudConsole, in StepFunctions</li>
+<li>Navigating to <code>localhost:3000</code> and login in with the default credentials <code>admin:admin</code>. Then go to <code>Dashboards</code> and you will see live metrics being updated.</li>
+</ol>
+<p>You can of course upload more data to the data bucket and trigger the StepFunction with the AWS UI or from the cli.</p>
+<p>Once you are done experimenting, clean up the infrastructure by running
+<strong>WARNING: this will delete all provisioned resources, including the S3 bucket which has the model and the ECR repository</strong></p>
+<pre><code class="language-bash">make clean_up_infra
+</code></pre>
+<p>At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found <a href="">here</a>.  <strong>Note you will have to make sure to delete the CloudWatch logs!</strong></p>
+<h2 id="testing">Testing</h2>
+<h3 id="unit-tests">Unit tests</h3>
+<p>The unit tests perform some minor checks and can be run with</p>
+<pre><code class="language-bash">make unit_tests
+</code></pre>
+<h3 id="integration-test">Integration test</h3>
+<p>The integration test will test the 3 most important components of the inference pipeline, namely the 3 lambda functions. For a detailed description, see <a href="">here</a>. This is done by spinning up <code>localstack</code> to emulate <code>S3</code> and <code>secretsmanager</code> as well as:</p>
+<ul>
+<li>3 containers representing the 3 lambdas</li>
+<li>a postgres database container</li>
+</ul>
+<p>The test then runs the lambdas inside the container and checks that they perform as expected. In particular, for the <code>processing</code> and <code>inference</code> lambdas, it checks that the functions create the appropriate result files with expected sizes. For the <code>observe</code> lambda, it checks that the database contains a metrics table with the expected metrics.</p>
+<p>To run the integration test, do</p>
+<pre><code class="language-bash">make integration_tests
+</code></pre>
+<h3 id="cicd">CI/CD</h3>
+<p>Github Actions are set up to run the unit and integration tests on every merge requests to the main branch.</p>
+<h2 id="code-quality">Code quality</h2>
+<p>The project is configured to run several different checks on every commit via <code>pre-commit</code>. One can also run a more extensive check by doing</p>
+<pre><code class="language-bash">make quality_check
+</code></pre>
+<p>Which will run <code>black</code> and <code>isort</code> for formatting as well as <code>pylint</code> for linting.</p>
+<ul>
+<li><code>lambda_processing</code>: processes data from raw to for ready for the model, also creates and checks a ledger to keep track of what has been processed, in a SQL database</li>
+<li><code>lambda_inference</code>: runs the actual model on the processed data and generates the predictions. Also records this in the ledger DB</li>
+<li><code>lambda_observe</code>:</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    <script id="__config" type="application/json">{"base": "../..", "features": [], "search": "../../assets/javascripts/workers/search.b8dbb3d2.min.js", "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.fe8b6f2b.min.js"></script>
+      
+    
+  </body>
+</html>
