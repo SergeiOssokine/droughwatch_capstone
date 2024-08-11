@@ -4,6 +4,7 @@ nav:
   - 'User Guide':
     - User Guide: "user_guide/user_guide.md"
     - Training pipeline in detail: "user_guide/training_pipeline.md"
+    - Inference pipeline in detail: "user_guide/inference_pipeline.md"
   - 'Python API':
     - Training module: "python_docs/python_docs_training.md"
     - Inference module: "python_docs/python_docs_inference.md"
