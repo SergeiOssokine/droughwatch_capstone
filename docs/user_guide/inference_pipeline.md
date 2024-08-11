@@ -63,6 +63,7 @@ You can follow along with the execution if you go to [AWS CloudConsole](https://
 
 Every step of the pipeline can be monitored and if a particular step fails one receives a message with the traceback, an example (triggered purposefully) can be seen below:
 
+![](./imgs/inference_fail.png)
 
 
 
