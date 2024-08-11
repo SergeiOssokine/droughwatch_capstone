@@ -761,6 +761,21 @@
 
 <h1 id="droughtwatch-capstone-project">Droughtwatch capstone project</h1>
 <h2 id="background-and-problem-statement">Background and problem statement</h2>
+<p>With the ever-increasing rate of extreme weather events cause by climate change it is become more and more urgent to be able to predict the impact of such events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the the threat of lost crops and food insecurity. Agricultural insuarance provides a means to offset some of that risk by offering farmers and pastoralists by compensating them for lost crops and livestock. In order to assess the losses and the compensation one requires data from the affected region. Traditionally, this was done with on the ground measurements, such as moisture detectors and crop cuttings. However, such operations are hard to conduct at scale and remote sensing techniques using satellite imagery have become more prevalent.</p>
+<p>In this project, we take inspiration and a great dataset from the communal <a href="https://wandb.ai/wandb/droughtwatch/benchmark"><code>droughtwatch</code> benchmark</a> hosted by Weights and Biases. <strong>We seek to construct a deep learning model that can predict the forage quality of land based on satellite imagary, without the need for expensive ground-based survey campaigns</strong>. This model takes in as input image data in several different bands and outputs the number of goats that could be supported at the area <em>in the center of the image</em>. For more background and information on the dataset see <a href="https://arxiv.org/abs/2004.04081">here</a>.</p>
+<p>We create an entire end-to-end pipeline to train, test, deploy and monitor such as model. The tech stack is briefly summarized below</p>
+<ul>
+<li>Docker for containerization</li>
+<li>Airflow for training orchestration</li>
+<li>Keras/ONNX for training and building the model</li>
+<li>Weights and Biases/MLFlow for experimentation tracking and model registry.</li>
+<li>AWS StepFunctions/Lambda/RDS/ECR/S3/EventBridge for the batch inference pipeline</li>
+<li>Evidently.ai/Grafana for model observability</li>
+<li>Terraform for deploying AWS resources</li>
+<li>Hydra/OmegaConf for project configuration</li>
+<li>mkdocs for documentation</li>
+<li>pytest for unit tests</li>
+</ul>
 <h2 id="initial-setup">Initial setup</h2>
 <p>This project assumes that one is using Linux/MacOS locally. If on Windows, please run inside WSL2.</p>
 <p>In order to be able to execute this project you will need:</p>
@@ -780,7 +795,7 @@
 <p>Setup the dev environment by running (this will use <code>uv</code> to create a new virtualenv and install all the necessary dependencies)</p>
 <pre><code class="language-bash">make setup_env
 </code></pre>
-<p>Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took 1 hour to train on NVidia GTX 1060 6GB</p>
+<p>Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on NVidia GTX 1060 6GB.</p>
 <h3 id="building-the-documentation-optional">Building the documentation (optional)</h3>
 <p>You can build and view a nicely rendered version of this document as well as additional documentation by simply running</p>
 <pre><code class="language-bash">mkdocs serve -a 'localhost:7777'
@@ -798,9 +813,9 @@ make download_data
 <p>The training pipeline is managed by <code>Airflow</code> DAGs, which takes care of data preparation and actual training using <code>Keras</code>. The experimentation tracking can either be done:</p>
 <ul>
 <li>locally with  <code>MLFlow</code> or</li>
-<li>on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your <code>WANDB_API_KEY</code> (see below)</li>
+<li>on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your <code>WANDB_API_KEY</code> (see below).</li>
 </ul>
-<p>To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in <code>./setup/conf</code>. For more details on training pipeline, see <a href="">here</a>.</p>
+<p>To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in <code>./setup/conf</code>.</p>
 <p>First the user <em>must</em> set up a secrets file, which will contain the AWS (and optionally WANDB credentials). This should be a file in standard <code>.env</code> format. Here is one example of how it can be created (assuming one is using WandB):</p>
 <pre><code class="language-bash">cd setup
 export WANDB_API_KEY=XXXX
@@ -880,7 +895,7 @@ ssh-keygen  -t ed25519
 <p>Now we are ready to provision the infrastructure. Navigate to the top-level of the repo and run</p>
 <pre><code class="language-bash">make provision_inference_infra
 </code></pre>
-<p>This will launch the terraform process which will ask you to enter the username and password for the database. <strong>Make sure the password you enter is at least 8 characters long!</strong> Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.</p>
+<p>This will launch the terraform process which will ask you to enter serveral things. First it will ask for the name of the <em>public</em> key. If you have been following the guide, simply type in <code>id_ed25519.pub</code>. You will also need to enter  the username and password that you would like to use for the database. <strong>Make sure the password you enter is at least 8 characters long!</strong> Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.</p>
 <p>To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!)</p>
 <pre><code class="language-bash">bash inference/observability/create_rds_tunnel.sh /path/to/your/private/key
 </code></pre>
