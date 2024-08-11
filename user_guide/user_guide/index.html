@@ -761,14 +761,14 @@
 
 <h1 id="droughtwatch-capstone-project">Droughtwatch capstone project</h1>
 <h2 id="background-and-problem-statement">Background and problem statement</h2>
-<p>With the ever-increasing rate of extreme weather events cause by climate change it is become more and more urgent to be able to predict the impact of such events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the the threat of lost crops and food insecurity. Agricultural insuarance provides a means to offset some of that risk by offering farmers and pastoralists by compensating them for lost crops and livestock. In order to assess the losses and the compensation one requires data from the affected region. Traditionally, this was done with on the ground measurements, such as moisture detectors and crop cuttings. However, such operations are hard to conduct at scale and remote sensing techniques using satellite imagery have become more prevalent.</p>
-<p>In this project, we take inspiration and a great dataset from the communal <a href="https://wandb.ai/wandb/droughtwatch/benchmark"><code>droughtwatch</code> benchmark</a> hosted by Weights and Biases. <strong>We seek to construct a deep learning model that can predict the forage quality of land based on satellite imagary, without the need for expensive ground-based survey campaigns</strong>. This model takes in as input image data in several different bands and outputs the number of goats that could be supported at the area <em>in the center of the image</em>. For more background and information on the dataset see <a href="https://arxiv.org/abs/2004.04081">here</a>.</p>
-<p>We create an entire end-to-end pipeline to train, test, deploy and monitor such as model. The tech stack is briefly summarized below</p>
+<p>With the ever-increasing rate of extreme weather events caused by climate change, it is becoming more and more urgent to be able to predict the impact of these events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the threat of lost crops and food insecurity. Agricultural insurance provides a means to offset some of that risk by offering farmers and pastoralists by compensating them for lost crops and livestock, but in order to assess the losses and the compensation, one requires data from the affected region. Traditionally, this was done with on-the-ground measurements, such as moisture detectors and crop cuttings. However, operations to gather these measurements are hard to conduct at scale, and remote sensing techniques using satellite imagery have become more prevalent.</p>
+<p>In this project, we take inspiration and a great dataset from the communal <a href="https://wandb.ai/wandb/droughtwatch/benchmark"><code>droughtwatch</code> benchmark</a> hosted by Weights and Biases. <strong>We seek to construct a deep learning model that can predict the forage quality of land based on satellite imagary, without the need for expensive ground-based survey campaigns</strong>. The model must take in as input satellite image data in several different bands and output the number of goats that could be supported at the area <em>in the center of the image</em>. For more background and information on the dataset, see <a href="https://arxiv.org/abs/2004.04081">here</a>.</p>
+<p>We create an entire end-to-end pipeline to train, test, deploy and monitor such a model. The tech stack is briefly summarised here:</p>
 <ul>
-<li>Docker for containerization</li>
+<li>Docker for containerisation</li>
 <li>Airflow for training orchestration</li>
 <li>Keras/ONNX for training and building the model</li>
-<li>Weights and Biases/MLFlow for experimentation tracking and model registry.</li>
+<li>Weights and Biases or optionally MLFlow for experimentation tracking and model registry</li>
 <li>AWS StepFunctions/Lambda/RDS/ECR/S3/EventBridge for the batch inference pipeline</li>
 <li>Evidently.ai/Grafana for model observability</li>
 <li>Terraform for deploying AWS resources</li>
@@ -778,7 +778,7 @@
 </ul>
 <h2 id="initial-setup">Initial setup</h2>
 <p>This project assumes that one is using Linux/MacOS locally. If on Windows, please run inside WSL2.</p>
-<p>In order to be able to execute this project you will need:</p>
+<p>In order to be able to execute this project, you will need:</p>
 <ul>
 <li>Python 3.10</li>
 <li>Docker (v27.0 or later) with docker compose</li>
@@ -787,22 +787,22 @@
 <li>jq-1.6</li>
 <li>GNU make</li>
 </ul>
-<p>You will also need an AWS account with sufficient priveleges.</p>
-<p>To manage python dependencies we use <a href="https://github.com/astral-sh/uv">uv</a> as it is extremely fast and robust. Install it following the <a href="https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started">official guidelines</a>.</p>
-<p>Throughout the project, <code>make</code> is used a lot. Note that whenever a <code>make</code> command is mentioned, it should be invoked at the top-level of the repo. To see the full list of possible commands simply run</p>
+<p>You will also need an AWS account with sufficient privileges. Some resources will cost money; for a Free Tier account, this should be less than 1 USD.</p>
+<p>To manage python dependencies, we use <a href="https://github.com/astral-sh/uv">uv</a> as it is extremely fast and robust. Install it following the <a href="https://github.com/astral-sh/uv?tab=readme-ov-file#getting-started">official guidelines</a>.</p>
+<p>Throughout the project, <code>make</code> is used a lot. Note that whenever a <code>make</code> command is mentioned, it should be invoked at the top-level of the repo. To see the full list of possible commands, simply run</p>
 <pre><code class="language-bash">make
 </code></pre>
-<p>Setup the dev environment by running (this will use <code>uv</code> to create a new virtualenv and install all the necessary dependencies)</p>
+<p>Setup the dev environment by running (this will use <code>uv</code> to create a new virtualenv and install all the necessary dependencies):</p>
 <pre><code class="language-bash">make setup_env
 </code></pre>
-<p>Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on NVidia GTX 1060 6GB.</p>
+<p>Note that since we will be training CNNs, it is highly desirable to run on a machine with CUDA-capable GPU, or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on an NVidia GTX 1060 6GB.</p>
 <h3 id="building-the-documentation-optional">Building the documentation (optional)</h3>
 <p>You can build and view a nicely rendered version of this document as well as additional documentation by simply running</p>
 <pre><code class="language-bash">mkdocs serve -a 'localhost:7777'
 </code></pre>
-<p>and pointing your browser to <code>http://localhost:7777</code></p>
+<p>and pointing your browser to <code>http://localhost:7777</code>.</p>
 <h2 id="training-the-model">Training the model</h2>
-<p>For a much more  detailed description, see <a href="../training_pipeline/">here</a>.</p>
+<p>For a much more detailed description, see <a href="../training_pipeline/">here</a>.</p>
 <h3 id="part-i-get-the-data">Part I: Get the data</h3>
 <p>The training data is large and thus we only want to download it once. You can do this by running</p>
 <pre><code class="language-bash">source .mlops/bin/activate
@@ -812,11 +812,11 @@ make download_data
 <h3 id="part-ii-prepare-the-infrastructure">Part II: Prepare the infrastructure</h3>
 <p>The training pipeline is managed by <code>Airflow</code> DAGs, which takes care of data preparation and actual training using <code>Keras</code>. The experimentation tracking can either be done:</p>
 <ul>
-<li>locally with  <code>MLFlow</code> or</li>
+<li>locally with <code>MLFlow</code> or</li>
 <li>on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your <code>WANDB_API_KEY</code> (see below).</li>
 </ul>
-<p>To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in <code>./setup/conf</code>.</p>
-<p>First the user <em>must</em> set up a secrets file, which will contain the AWS (and optionally WANDB credentials). This should be a file in standard <code>.env</code> format. Here is one example of how it can be created (assuming one is using WandB):</p>
+<p>To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. These configuration files are in <code>./setup/conf</code>.</p>
+<p>First, the user <em>must</em> set up a secrets file, which will contain the AWS (and optionally WandB credentials). This should be a file in standard <code>.env</code> format. Here is one example of how it can be created (assuming one is using WandB):</p>
 <pre><code class="language-bash">cd setup
 export WANDB_API_KEY=XXXX
 echo &quot;WANDB_API_KEY=${WANDB_API_KEY}&quot; &gt; .secrets
@@ -824,68 +824,68 @@ echo &quot;WANDB_API_KEY=${WANDB_API_KEY}&quot; &gt; .secrets
 aws configure sso # If using SSO credentials
 aws configure export-credentials --format env-no-export &gt;&gt; .secrets
 </code></pre>
-<p>You should have something like this in <code>.secrets</code></p>
+<p>You should then have something like this in <code>.secrets</code></p>
 <pre><code class="language-bash">WANDB_API_KEY=XXXX
 AWS_ACCESS_KEY_ID=YYYYYYYYY
 AWS_SECRET_ACCESS_KEY=ZZZZZZZZZZZZZZZZ
 AWS_SESSION_TOKEN=REALLY_LONG_STRING
 AWS_CREDENTIAL_EXPIRATION=2024-07-24T13:36:28+00:00
 </code></pre>
-<p>Then, the user could change the values in <code>./setup/conf/config.yaml</code>.  Most importantly:</p>
+<p>You can then change the values in <code>./setup/conf/config.yaml</code>. Most importantly:</p>
 <ul>
-<li><code>training.model_registry_s3_bucket</code> Name of the S3 bucket that will be created to store models that are promoted to the model registry. <strong>Make sure to pick a globally unique name</strong> (using <code>uuidgen</code> may be helpful here)</li>
-<li><code>training.logging.style</code>. This determines whether the experiment tracking is done using WandB in the cloud  or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be <code>wandb</code> or <code>mlflow</code>.</li>
-<li><code>training.logging.wandb_org_name</code>. Name of the org created when setting up wandb. Only need to change this if wandb is used, otherwise leave the default.</li>
-<li><code>infra.aws_region</code>. The region in which all AWS services will be deployed.</li>
-<li><code>infra.training.use_gpu_training</code>. Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities &gt; 6 are supported. You will also need to set up the nvidia Docker toolkit, as described <a href="">here</a>.</li>
-<li><code>infra.inference.data_bucket</code>. The name of the bucket where new data will be added to run batch inference.</li>
+<li><code>training.model_registry_s3_bucket</code>: Name of the S3 bucket that will be created to store models that are promoted to the model registry. <strong>Make sure to pick a globally unique name</strong> (using <code>uuidgen</code> may be helpful here).</li>
+<li><code>training.logging.style</code>: This determines whether the experiment tracking is done using WandB in the cloud or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be <code>wandb</code> or <code>mlflow</code>.</li>
+<li><code>training.logging.wandb_org_name</code>: Name of the org created when setting up WandB. Only need to change this if WandB is used, otherwise leave the default.</li>
+<li><code>infra.aws_region</code>: The region in which all AWS services will be deployed.</li>
+<li><code>infra.training.use_gpu_training</code>: Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities &gt; 6 are supported. You will also need to set up the nvidia Docker toolkit, as described <a href="../Docker_GPU/">here</a>.</li>
+<li><code>infra.inference.data_bucket</code>: The name of the bucket where new data will be added to run batch inference.</li>
 <li><code>model_path</code>: Which model in the <code>model_registry_s3_bucket</code> to use. WARNING: only change this if you intend to train more than just the default baseline model.</li>
 </ul>
-<p>Once all done, deploy the training infrastructure docker by doing</p>
+<p>Once all done, deploy the training infrastructure docker by doing:</p>
 <pre><code class="language-bash">make setup_training_infra
 </code></pre>
 <p>This will produce a lot of output, including a yaml representation of the project configuration. It will also
 setup the s3 bucket needed to hold models that will be promoted to the model registry.</p>
-<p>If everything looks right and no errors are returned deploy everything by running</p>
+<p>If everything looks right and no errors are returned, deploy everything by running</p>
 <pre><code class="language-bash">make launch_training_infra
 </code></pre>
-<p>This will take a while the first time you run it, as it will be necessary to pull and build the images. This may take a while (5-10 minutes depending on the internet connection). Check that you can access the <code>Airflow</code> server at <code>http://localhost:8080</code> (it might take 2 minutes or so for the webserver to spin up). You can log in with the default password (<code>admin:admin</code>). You should see several DAGs.</p>
+<p>This will take a while the first time you run it, as it will be necessary to pull and build the images. This may take a while (5-10 minutes depending on your internet connection). Check that you can access the <code>Airflow</code> server at <code>http://localhost:8080</code> (it might take 2 minutes or so for the webserver to spin up). You can log in with the default password (<code>admin:admin</code>). You should see several DAGs.</p>
 <p>You are now all set to do the training!</p>
 <h3 id="part-iii-training">Part III: Training</h3>
 <p>To train the most basic model, simply do</p>
 <pre><code class="language-bash">make train_baseline
 </code></pre>
 <p>This will trigger the <code>baseline</code> dag (you may have to reload the Airflow UI webpage to see the progress).
-Note that the first time you trigger this, it will start by pre-processing the image data (filtering and feature engineering). Since there is a lot of data (&gt;100l images) this may take a few minutes (~10). Once the <code>data_processing</code> task is done, you should be able to see the training progress either on <code>MLFlow</code>(point your browser to <code>localhost:5012</code>) or <code>wandb</code>.
-If using <code>wandb</code> you should also see the run appear under <code>USENRAME/droughtwatch_capstone</code> project. It should take 10 minutes to train on the GPU.  You should see the standard metrics like training and validation accuracy and loss, as well as others.</p>
+Note that the first time you trigger this, it will start by pre-processing the image data (filtering and feature engineering). Since there is a lot of data (&gt;100k images) this may take a few minutes (~10). Once the <code>data_processing</code> task is done, you should be able to see the training progress either on <code>MLFlow</code>(point your browser to <code>localhost:5012</code>) or <code>wandb</code>.
+If using <code>wandb</code>, you should also see the run appear under <code>USERNAME/droughtwatch_capstone</code> project. It should take 5 minutes to train on the GPU. You should see the standard metrics like training and validation accuracy and loss, as well as others.</p>
 <p>The DAG is configured to run every 24 hours to retrain the model in case new data is added.</p>
-<p>At the end of this training the model and all parameters and metrics are logged, and:</p>
+<p>At the end of this training, the model and all parameters and metrics are logged, and:</p>
 <ul>
 <li>the model is uploaded to s3</li>
 <li>the model is promoted to the model registry</li>
 </ul>
-<p>This is in principle all one needs to do in order to proceed with model deployment. However, you can also train a few more interesting models if you wish</p>
+<p>This is in principle all one needs to do in order to proceed with model deployment. However, you can also train a few more interesting models if you wish:</p>
 <ul>
 <li><code>useful</code>- just like baseline but with 100 epochs and thus much better accuracy</li>
 <li><code>ndvi</code> - uses NDVI as the feature instead of the RGB+NIR bands</li>
 <li><code>nd</code> - uses NDVI + NDMI as features instead of RGB+NIR</li>
 </ul>
-<p>You can easily add your own by adding to the file <code>./training/airflow/dags/pipeline.py</code></p>
+<p>You can easily add your own or extend the feature set by adding to the file <code>./training/airflow/dags/pipeline.py</code>.</p>
 <p>When you are done with training, clean up by running:</p>
 <pre><code class="language-bash">make clean_up_training
 </code></pre>
 <p>This will bring down all the docker containers we have deployed.</p>
 <h2 id="inference">Inference</h2>
 <h3 id="part-i-setting-up-the-infrastructure">Part I: Setting up the infrastructure</h3>
-<p>The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a much more detailed description, see <a href="../inference_pipeline/">here</a>.</p>
+<p>The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lambda functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions. To trigger the pipeline, we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or whatever cadence we configure). For a much more detailed description, see <a href="../inference_pipeline/">here</a>.</p>
 <p>First thing to do is to configure the infrastructure for inference. To do so, run</p>
 <pre><code class="language-bash">make setup_inference_infra
 </code></pre>
 <p>This will perform the following actions:</p>
 <ol>
 <li>Read the overall configuration (from <code>setup/conf</code>)</li>
-<li>Populate the terraform varibales based on this config (in <code>inference/setup/tf/vars/droughtwatch.tfvars</code>)</li>
-<li>Build the image for the lambda functions that will do all the work, and push to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on the internet connection. (Note: sometimes it may complain and give a timeout error; just rerun the make command)</li>
+<li>Populate the terraform variables based on this config (in <code>inference/setup/tf/vars/droughtwatch.tfvars</code>)</li>
+<li>Build the image for the Lambda functions that will do all the work, and push the image to a private ECR repo. Note that this step may take a while (~5-10 minutes) depending on your internet connection. (Note: sometimes it may complain and give a timeout error; just rerun the make command and try again.)</li>
 </ol>
 <p>Next, one requires to set up a new ssh keypair which will allow local access to the RDS database on AWS while being secure.</p>
 <pre><code>cd inference/setup/tf/modules/ec2
@@ -895,14 +895,26 @@ ssh-keygen  -t ed25519
 <p>Now we are ready to provision the infrastructure. Navigate to the top-level of the repo and run</p>
 <pre><code class="language-bash">make provision_inference_infra
 </code></pre>
-<p>This will launch the terraform process which will ask you to enter serveral things. First it will ask for the name of the <em>public</em> key. If you have been following the guide, simply type in <code>id_ed25519.pub</code>. You will also need to enter  the username and password that you would like to use for the database. <strong>Make sure the password you enter is at least 8 characters long!</strong> Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.</p>
-<p>To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!)</p>
-<pre><code class="language-bash">bash inference/observability/create_rds_tunnel.sh /path/to/your/private/key
+<p>This will launch the terraform process which will ask you to enter several things:</p>
+<ol>
+<li>
+<p>First it will ask for the name of the <em>public</em> key. If you have been following the guide, you can simply type in <code>id_ed25519.pub</code>.</p>
+</li>
+<li>
+<p>It will then ask for a password that you would like to use for the database. <strong>Make sure the password you enter is at least 8 characters long!</strong> Don't forget this!</p>
+</li>
+<li>
+<p>Lastly it will ask for a username for the database. Don't forget this either!</p>
+</li>
+</ol>
+<p>You will then need to type in "yes" to confirm the deployment with terraform, and the provisioning will begin. It should take about 5 minutes to provision everything.</p>
+<p>To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!):</p>
+<pre><code class="language-bash">bash inference/observability/create_rds_tunnel.sh /path/to/your/PRIVATE/key
 </code></pre>
 <p>This will produce a command that looks like the following</p>
 <pre><code>ssh -i /home/sergei/.ssh/id_ed25519 ubuntu@i-0be7a30f923f2d693 -o ServerAliveInterval=30 -o ProxyCommand='aws ec2-instance-connect open-tunnel --instance-id i-0be7a30f923f2d693' -L 5432:droughtwatch.cbesic40wlrm.us-east-1.rds.amazonaws.com:5432
 </code></pre>
-<p>Simply execute it in another terminal window and the right ssh tunnel is created.
+<p>Open another terminal window and execute this command to create the ssh tunnel.
 Finally run:</p>
 <pre><code class="language-bash">make setup_inference_observability
 </code></pre>
@@ -912,49 +924,44 @@ Finally run:</p>
 <p>That's it!</p>
 <h3 id="part-ii-running-inference-and-observability">Part II: Running inference and observability</h3>
 <p>First we need to upload some data to s3 for our model to ingest. While 24 hours is a reasonable cadence for real-world scenarios with satellite data, for demonstration purposes we don't want to wait that long. Thus we provide a script that:
-- Upload a new set of data every 20 seconds for a total of 15 datasets
+- Uploads a new set of data every 20 seconds for a total of 15 datasets
 - Runs the inference pipeline on it (and blocks until each run is finished)</p>
-<p>You can launch the script by running</p>
+<p>You can launch the script by running:</p>
 <pre><code class="language-bash">make upload_and_run_inference
 </code></pre>
 <p>Then you can monitor the progress in a variety of ways:</p>
 <ol>
 <li>On AWS CloudConsole, in StepFunctions</li>
-<li>Navigating to <code>localhost:3000</code> and login in with the default credentials <code>admin:admin</code>. Then go to <code>Dashboards</code> and you will see live metrics being updated.</li>
+<li>Navigating to <code>localhost:3000</code> to grafana and login in with the default credentials <code>admin:admin</code>. (You can skip setting a new password.) Then go to <code>Dashboards</code> and you will see live metrics being updated.</li>
 </ol>
 <p>You can of course upload more data to the data bucket and trigger the StepFunction with the AWS UI or from the cli.</p>
-<p>Once you are done experimenting, clean up the infrastructure by running
-<strong>WARNING: this will delete all provisioned resources, including the S3 bucket which has the model and the ECR repository</strong></p>
+<p>Once you are done experimenting, clean up the infrastructure by running:
+<strong>WARNING: this will delete all provisioned resources, including the S3 bucket which has the model and the ECR repository.</strong></p>
 <pre><code class="language-bash">make clean_up_infra
 </code></pre>
-<p>At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why can be found <a href="">here</a>.  <strong>Note you will have to make sure to delete the CloudWatch logs!</strong></p>
+<p>At a couple of points you will have to enter the same info you did when you created the terraform resources. Note that the last step involves destroying things provisioned on AWS and it may take up to 25 minutes (!). More explanation on why it takes this long can be found <a href="https://github.com/hashicorp/terraform-provider-aws/issues/31520">here</a>.  <strong>Note: If you wish to delete the CloudWatch logs too, you will have to delete them manually as they weren't provisioned with Terraform.</strong></p>
 <h2 id="testing">Testing</h2>
 <h3 id="unit-tests">Unit tests</h3>
-<p>The unit tests perform some minor checks and can be run with</p>
+<p>The unit tests perform some minor checks and can be run with:</p>
 <pre><code class="language-bash">make unit_tests
 </code></pre>
 <h3 id="integration-test">Integration test</h3>
-<p>The integration test will test the 3 most important components of the inference pipeline, namely the 3 lambda functions. For a detailed description, see <a href="">here</a>. This is done by spinning up <code>localstack</code> to emulate <code>S3</code> and <code>secretsmanager</code> as well as:</p>
+<p>The integration test will test the three most important components of the inference pipeline, namely the three Lambda functions. For a detailed description, see <a href="../inference_pipeline/">here</a>. This is done by spinning up <code>localstack</code> to emulate <code>S3</code> and <code>secretsmanager</code> as well as:</p>
 <ul>
-<li>3 containers representing the 3 lambdas</li>
+<li>3 containers representing the 3 Lambdas</li>
 <li>a postgres database container</li>
 </ul>
-<p>The test then runs the lambdas inside the container and checks that they perform as expected. In particular, for the <code>processing</code> and <code>inference</code> lambdas, it checks that the functions create the appropriate result files with expected sizes. For the <code>observe</code> lambda, it checks that the database contains a metrics table with the expected metrics.</p>
-<p>To run the integration test, do</p>
+<p>The test then runs the Lambdas inside the container and checks that they perform as expected. In particular, for the <code>processing</code> and <code>inference</code> Lambdas, it checks that the functions create the appropriate result files with expected sizes. For the <code>observe</code> Lambda, it checks that the database contains a metrics table with the expected metrics.</p>
+<p>To run the integration test, do:</p>
 <pre><code class="language-bash">make integration_tests
 </code></pre>
 <h3 id="cicd">CI/CD</h3>
-<p>Github Actions are set up to run the unit and integration tests on every merge requests to the main branch.</p>
+<p>Github Actions are set up to run the unit and integration tests on every merge request to the main branch.</p>
 <h2 id="code-quality">Code quality</h2>
-<p>The project is configured to run several different checks on every commit via <code>pre-commit</code>. One can also run a more extensive check by doing</p>
+<p>The project is configured to run several different checks on every commit via <code>pre-commit</code>. One can also run a more extensive check by doing:</p>
 <pre><code class="language-bash">make quality_check
 </code></pre>
-<p>Which will run <code>black</code> and <code>isort</code> for formatting as well as <code>pylint</code> for linting.</p>
-<ul>
-<li><code>lambda_processing</code>: processes data from raw to for ready for the model, also creates and checks a ledger to keep track of what has been processed, in a SQL database</li>
-<li><code>lambda_inference</code>: runs the actual model on the processed data and generates the predictions. Also records this in the ledger DB</li>
-<li><code>lambda_observe</code>:</li>
-</ul>
+<p>This will run <code>black</code> and <code>isort</code> for formatting as well as <code>pylint</code> for linting.</p>
 
 
 
