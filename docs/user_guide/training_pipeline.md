@@ -30,7 +30,7 @@ The model is constructed in Keras and then trained on the processed data. During
 ## The model
 The model we choose to be the base for this project is a simple CNN architecture, since modelling is not the focus of this project. This model takes in images in any of the provided bands/derived features and attempts to predict the labels, which correspond to the number of goats that can be supported. The summary of the baseline model can be seen below:
 
-![](imgs/model_new.png)
+![](imgs/model_resized.png)
 
 The training data contains  a class imbalance: 60% of all labels are of class 0 (poor forage quality). To compensate we use direct class weights defined as follows:
 
