@@ -29,7 +29,7 @@ Setup the dev environment by running (this will use `uv` to create a new virtual
 make setup_env
 ```
 
-Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took 1 hour to train on NVidia GTX 1060 6GB
+Note that since we will be training CNNs it is highly desirable to run on a machine with CUDA-capable GPU or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on NVidia GTX 1060 6GB.
 
 ### Building the documentation (optional)
 
@@ -59,10 +59,9 @@ Note that this will take a few minutes.
 The training pipeline is managed by `Airflow` DAGs, which takes care of data preparation and actual training using `Keras`. The experimentation tracking can either be done:
 
 - locally with  `MLFlow` or
-- on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your `WANDB_API_KEY` (see below)
+- on the Weights and Biases cloud. The latter requires one to have a WandB account (the free tier is more than sufficient). In particular, you will need your `WANDB_API_KEY` (see below).
 
-To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in `./setup/conf`. For more details on training pipeline, see [here]().
-
+To do this, we run a docker compose stack that contains all the necessary services. In order for everything to work, one needs to configure a few things first. The configuration for this project is managed via Hydra, that uses nested, composable yaml files. The configuration files are in `./setup/conf`.
 
 First the user _must_ set up a secrets file, which will contain the AWS (and optionally WANDB credentials). This should be a file in standard `.env` format. Here is one example of how it can be created (assuming one is using WandB):
 

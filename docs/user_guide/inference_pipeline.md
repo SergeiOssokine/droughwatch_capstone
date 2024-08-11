@@ -47,5 +47,20 @@ Thus the complete system looks as follows:
 ![](./imgs/architecture.svg)
 
 
+To provision these resouces we use Terraform (both for AWS resouces _and_ the local Grafana dashboard).  The necessary variables are all configured automatically with `setup_inference_infra` except for sensitive values (database credentials). You can find the Terraform infrastructure [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup/tf) for AWS and [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/observability/tf) for local resources. A complete, automatically generated list of all AWS resources, can be found [here](tf_aws.md).
+
+
+
+### Running inference on new data
+As mentioned in the user guide, you can automatically upload some new data sets to S3 and trigger the pipeline on each by using
+
+```bash
+make upload_and_run_inference
+```
+You can follow along with the execution if you go to [AWS CloudConsole](https://console.aws.amazon.com/states/home) you should see the `droughtwatch-inference` state machine. Clicking it will show a list of executions. Clicking on one which is still running will show you a live step-by-step progress of the pipeline, along with convenient links to AWS CloudWatch logs of the Lambda function executions. If all goes well you should see things proceed as follows:
+
+![](./imgs/statemachine.gif)
+
+
 ### Observability
-Using the ssh tunnel, the RDS database can be accessed on local host at the usual port 5432. We construct an additional
+Using the ssh tunnel, the RDS database can be accessed on local host at the usual port 5432. As discussed in the user guide, the command `make setup_inference_observability` will ensure everything is ready. Going to `http://localhost:3000` and logging in with the default credentials (`admin:admin`), click on `Dashboards` in the menu and navigate to the the only folder present and click on "Model Observability Dashboard". Because  the time of execution is not known in advance, you will have to click "Zoom to data" and you should see something like the following
