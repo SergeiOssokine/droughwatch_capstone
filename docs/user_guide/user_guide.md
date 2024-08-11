@@ -1,5 +1,5 @@
-# droughwatch_capstone
-Use ML to predict the quality of soil from satellite images
+# Droughtwatch capstone project
+## Background and problem statement
 
 
 ## Initial setup
@@ -149,7 +149,7 @@ This will bring down all the docker containers we have deployed.
 ## Inference
 
 ### Part I: Setting up the infrastructure
-The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a more detailed description, see [here]().
+The inference pipeline (shown below) is hosted on AWS and is provisioned using terraform. In brief, the pipeline is orchestrated using AWS StepFunctions, which in this case just means it executes 3 AWS Lamba functions which correspond to processing the data, running the model on the processed data, and finally computing some metrics on the predictions.  To trigger the pipeline we use an EventBridge scheduler that simply runs the StepFunctions every 24 hours (or w/e cadence we configure). For a much more detailed description, see [here](./inference_pipeline.md).
 
 First thing to do is to configure the infrastructure for inference. To do so, run
 
