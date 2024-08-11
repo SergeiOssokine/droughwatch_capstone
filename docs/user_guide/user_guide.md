@@ -1,5 +1,15 @@
 # Droughtwatch capstone project
 ## Background and problem statement
+With the ever-increasing rate of extreme weather events cause by climate change it is become more and more urgent to be able to predict the impact of such events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the the threat of lost crops and food insecurity. Agricultural insuarance provides a means to offset some of that risk by offering farmers and pastoralists by compensating them for lost crops and livestock. In order to assess the losses and the compensation one requires data from the affected region. Traditionally, this was done with on the ground measurements, such as moisture detectors and crop cuttings. However, such operations are hard to conduct at scale and remote sensing techniques using satellite imagery have become more prevalent.
+
+In this project, we take inspiration and a great dataset from the communal [`droughtwatch` benchmark](https://wandb.ai/wandb/droughtwatch/benchmark) hosted by Weights and Biases. We seek to construct a deep learning model that can predict the forage quality of land based on satellite imagary, without the need for expensive ground-based survey campaigns. This model takes in as input image data in several different bands and outputs the number of goats that could be supported at the area _in the center of the image_. For more background and information on the dataset see [here](https://arxiv.org/abs/2004.04081).
+
+We create an entire end-to-end pipeline to train, test, deploy and monitor such as model. The tech stack is briefly summarized below
+
+| Task| Tech stack|
+|-----|-----------|
+|Training| Docker for containerization, Airflow for orchestration, Keras for DL model, Weights and Biases/MLFlow for experiment tracking + model registrty, AWS S3 for model storage|
+| Inference| AWS StepFunctions/Lambda/RDS/ECR/S3/EventBridge for batch deployment pipeline, Docker+Evidently+Grafana for model observability |
 
 
 ## Initial setup
@@ -175,7 +185,7 @@ Now we are ready to provision the infrastructure. Navigate to the top-level of t
 ```bash
 make provision_inference_infra
 ```
-This will launch the terraform process which will ask you to enter the username and password for the database. **Make sure the password you enter is at least 8 characters long!** Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.
+This will launch the terraform process which will ask you to enter serveral things. First it will ask for the name of the _public_ key. If you have been following the guide, simply type in `id_ed25519.pub`. You will also need to enter  the username and password that you would like to use for the database. **Make sure the password you enter is at least 8 characters long!** Don't forget these! You will then need to answer "yes" and the provisioning will begin. It should take about 5 minutes to provision everything.
 
 To be able to visualize metrics in a nice grafana dashboard, two more short steps are needed: first connect to the bastion host, to generate an ssh tunnel that allows our local machine to access the database. This can be done by running (replace with the actual path!)
 

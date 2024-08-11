@@ -1,3 +1,5 @@
+This page lists the resource and requirements for the TF modules used to provision inference resources on AWS.
+It was automatically generated using [terraform-docs](https://github.com/terraform-docs/terraform-docs).
 ## Requirements
 
 | Name | Version |

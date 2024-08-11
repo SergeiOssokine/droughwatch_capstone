@@ -8,10 +8,10 @@ The inference pipeline is run on the AWS cloud and is orchestrated via [AWS Step
 The 3 tasks here are of course:
 
 - Processing: turn raw data to processed data ready to be used for the model. This reuses the [same code]() that was used for this purpose in the training pipeline.
-- Inference: the model is loaded and is run on the data to produce predictions for the label of every image
+- Inference: the model is loaded and is run on the data to produce predictions for the label of every image.
 - Observe: a set of metrics looking at the behaviour of the model is computed using `Evidently`:
-    1. The class distribution (i.e. what share of all the predictions fall in each class)
-    2. The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data (note: for simplicity we used syntehtic reference data in this project that simply reflects the true underlying class distribution of the data)
+    1. The class distribution (i.e. what share of all the predictions fall in each class) as measured by the $\chi^{2}$ [test](https://docs.evidentlyai.com/reference/data-drift-algorithm).
+    2. The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data (note: for simplicity we used syntehtic reference data in this project that simply reflects the true underlying class distribution of the data).
 
 
 Each task is followed by a choice node which checks the output of the task and depending on whether it succeeds or fails continues along the graph. In the above, all successful executions take the _right_ branch.
@@ -21,11 +21,11 @@ On a more concrete implementation level, the 3 tasks above are done by 3 AWS Lam
 
 ![](./imgs/state_machine_impl.png)
 
-The [code]() for the 3 functions are all packaged in a single Docker image and the correct handler is chosen as appropriate.
+The [code](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup) for the 3 functions are all packaged in a single Docker image and the correct handler is chosen as appropriate.
 
 The Lambda functions need access to several other AWS services:
 
-- AWS Elastic Container Registry (ECR):  to store the actual image used by the Lamdba  functions
+- AWS Elastic Container Registry (ECR):  to store the actual image used by the Lamdba  functions.
 - AWS S3:
 
     1. To access the model that we uploaded to S3 at the end of the training pipeline
@@ -33,8 +33,8 @@ The Lambda functions need access to several other AWS services:
 
 - AWS Remote Database Service (RDS) where a PostgresSQL database is used for 2 tasks:
 
-    1. Keep track which tasks have been completed on which files in a `ledger` database
-    2. Record a set of metrics computed with `Evidently` which will be subsequently visualized in a dashboard. See [below]()
+    1. Keep track which tasks have been completed on which files in a `ledger` database. This ensures that only new data is processed and thus no resources are wasted.
+    2. Record a set of metrics computed with `Evidently` which will be subsequently visualized in a dashboard. See [below](#observability).
 
 - AWS Secrets Manager: Since we are connecting to RDS we need to securely store credentials.
 
@@ -61,6 +61,21 @@ You can follow along with the execution if you go to [AWS CloudConsole](https://
 
 ![](./imgs/statemachine.gif)
 
+Every step of the pipeline can be monitored and if a particular step fails one receives a message with the traceback, an example (triggered purposefully) can be seen below:
+
+
+
 
 ### Observability
-Using the ssh tunnel, the RDS database can be accessed on local host at the usual port 5432. As discussed in the user guide, the command `make setup_inference_observability` will ensure everything is ready. Going to `http://localhost:3000` and logging in with the default credentials (`admin:admin`), click on `Dashboards` in the menu and navigate to the the only folder present and click on "Model Observability Dashboard". Because  the time of execution is not known in advance, you will have to click "Zoom to data" and you should see something like the following
+Using the ssh tunnel, the RDS database can be accessed on local host at the usual port 5432. As discussed in the user guide, the command `make setup_inference_observability` will ensure everything is ready. Going to `http://localhost:3000` and logging in with the default credentials (`admin:admin`), click on `Dashboards` in the menu and navigate to the the only folder present and click on "Model Observability Dashboard". Because  the time of execution is not known in advance, you will have to click "Zoom to data" and you should see something like the following:
+
+![](./imgs/grafana_dashboard.png)
+
+The top 2 panels show the prediction class distribution and the prediction drift respectively.  This gives us an at-a-glance view of how the mode is behaving. The bottom half of the dashboard shows the ledger table, which shows which data files have been processed and when.
+
+In addition we have created a Grafana alert, seen here:
+
+![](./imgs/grafana_alert.png)
+
+This alert will trigger if the prediction drift exceeds a threshold of 25%.
+
