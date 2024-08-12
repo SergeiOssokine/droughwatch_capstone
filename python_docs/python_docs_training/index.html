@@ -3044,8 +3044,7 @@ For the possible settings see setup/conf/training/*</p>
 
             <details class="quote">
               <summary>Source code in <code>training/airflow/includes/train.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">196</span>
-<span class="normal">197</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">197</span>
 <span class="normal">198</span>
 <span class="normal">199</span>
 <span class="normal">200</span>
@@ -3177,6 +3176,8 @@ For the possible settings see setup/conf/training/*</p>
 
     <span class="n">model</span> <span class="o">=</span> <span class="n">construct_baseline_model</span><span class="p">(</span><span class="n">cfg</span><span class="p">)</span>
     <span class="n">run_name</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">_</span><span class="si">{</span><span class="n">generate_random_id</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+    <span class="n">config</span> <span class="o">=</span> <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span><span class="n">cfg</span><span class="p">,</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">throw_on_missing</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;logging&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">logging_style</span> <span class="o">==</span> <span class="s2">&quot;wandb&quot;</span><span class="p">:</span>
         <span class="c1"># Do cloud-based wandb logging</span>
         <span class="k">try</span><span class="p">:</span>
@@ -3193,10 +3194,6 @@ For the possible settings see setup/conf/training/*</p>
 
         <span class="n">run</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">init</span><span class="p">(</span><span class="n">name</span><span class="o">=</span><span class="n">run_name</span><span class="p">,</span> <span class="n">project</span><span class="o">=</span><span class="n">PROJECT_NAME</span><span class="p">)</span>
 
-        <span class="n">config</span> <span class="o">=</span> <span class="n">omegaconf</span><span class="o">.</span><span class="n">OmegaConf</span><span class="o">.</span><span class="n">to_container</span><span class="p">(</span>
-            <span class="n">cfg</span><span class="p">,</span> <span class="n">resolve</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">throw_on_missing</span><span class="o">=</span><span class="kc">True</span>
-        <span class="p">)</span>
-        <span class="n">config</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;logging&quot;</span><span class="p">)</span>
         <span class="n">wf_cfg</span> <span class="o">=</span> <span class="n">wandb</span><span class="o">.</span><span class="n">config</span>
         <span class="n">wf_cfg</span><span class="o">.</span><span class="n">setdefaults</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
         <span class="n">callbacks</span> <span class="o">=</span> <span class="p">[</span><span class="n">WandbMetricsLogger</span><span class="p">()]</span>
@@ -3221,6 +3218,7 @@ For the possible settings see setup/conf/training/*</p>
         <span class="p">)</span>
     <span class="k">if</span> <span class="n">logging_style</span> <span class="o">==</span> <span class="s2">&quot;mlflow&quot;</span><span class="p">:</span>
         <span class="n">mlflow</span><span class="o">.</span><span class="n">keras</span><span class="o">.</span><span class="n">log_model</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;artifacts&quot;</span><span class="p">)</span>
+        <span class="n">mlflow</span><span class="o">.</span><span class="n">log_params</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">cfg</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">register</span><span class="p">:</span>
         <span class="c1"># We want to register this model in the model registry so we can</span>
@@ -3276,13 +3274,79 @@ For the possible settings see setup/conf/training/*</p>
 
       <p>A wrapper around the training code that reads the config
 and applies any overrides before calling the actual training.
-See ./setp/conf/training for options.
-Args:
-    model_config (str, optional): Which model configuration to use. Defaults to "default".
-    features_config (str, optional): Which features to use. Defaults to "default".
-    logging_config (str, optional): What logging to use. Defaults to "default".
-    override_args (Dict[str, Any] | None, optional): Any direct overrides to give.
-        Defaults to None.</p>
+See ./setp/conf/training for options.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td><code>model_config</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Which model configuration to use. Defaults to "default".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;default&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>features_config</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Which features to use. Defaults to "default".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;default&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>logging_config</code></td>
+            <td>
+                  <code>str</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>What logging to use. Defaults to "default".</p>
+              </div>
+            </td>
+            <td>
+                  <code>&#39;default&#39;</code>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td><code>override_args</code></td>
+            <td>
+                  <code><span title="typing.Dict">Dict</span>[str, <span title="typing.Any">Any</span>] | None</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Any direct overrides to give.
+Defaults to None.</p>
+              </div>
+            </td>
+            <td>
+                  <code>None</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
 
             <details class="quote">
               <summary>Source code in <code>training/airflow/includes/train.py</code></summary>
@@ -3319,15 +3383,17 @@ Args:
 <span class="normal">190</span>
 <span class="normal">191</span>
 <span class="normal">192</span>
-<span class="normal">193</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span>
+<span class="normal">193</span>
+<span class="normal">194</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span> <span class="nf">train_model</span><span class="p">(</span>
     <span class="n">model_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
     <span class="n">features_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
     <span class="n">logging_config</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;default&quot;</span><span class="p">,</span>
     <span class="n">override_args</span><span class="p">:</span> <span class="n">Dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
-<span class="p">):</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A wrapper around the training code that reads the config</span>
 <span class="sd">    and applies any overrides before calling the actual training.</span>
 <span class="sd">    See ./setp/conf/training for options.</span>
+
 <span class="sd">    Args:</span>
 <span class="sd">        model_config (str, optional): Which model configuration to use. Defaults to &quot;default&quot;.</span>
 <span class="sd">        features_config (str, optional): Which features to use. Defaults to &quot;default&quot;.</span>

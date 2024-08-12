@@ -565,7 +565,16 @@
 <h2 id="overview">Overview</h2>
 <p>The training process is orchestrated using <a href="https://airflow.apache.org/docs/apache-airflow/stable/index.html">Apache Airflow</a>. Airflow is a mature, robust and well-documented open-source workflow engine, that is <a href="https://www.astronomer.io/state-of-airflow/">extremely widely used</a>.</p>
 <p>The diagram below shows the overall architecture of the training pipeline. The entire training environment is inside a Docker container for reproducibility and ease of deployment.</p>
+<div class="tabbed-set tabbed-alternate" data-tabs="1:2"><input checked="checked" id="__tabbed_1_1" name="__tabbed_1" type="radio" /><input id="__tabbed_1_2" name="__tabbed_1" type="radio" /><div class="tabbed-labels"><label for="__tabbed_1_1">W&amp;B-based</label><label for="__tabbed_1_2">MLFlow-based</label></div>
+<div class="tabbed-content">
+<div class="tabbed-block">
 <p><img alt="" src="../imgs/architecture_training.svg" /></p>
+</div>
+<div class="tabbed-block">
+<p><img alt="" src="./imgs/architecture_training_mlflow.svg" /></p>
+</div>
+</div>
+</div>
 <p>The tasks to be performed are organised in DAGs (Directed Acyclic Graphs), where each node corresponds to a given task. Airflow keeps track of the dependencies between tasks, as well as the logging of each task execution and the scheduling of the DAGs. Given that our model uses a large amount of data, we elected not to to handle the downloading of the raw data as a task in a DAG. Instead we use <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/utils/download_data.py">a script</a> that downloads the data to local storage.</p>
 <p>The raw data is in the form of about a hundred of TensorFlow <a href="https://www.tensorflow.org/tutorials/load_data/tfrecord">TFRecord files</a>, which is an efficient binary storage format for Tensor data sets. The raw data is not quite suitable for training and thus we transform it by:
 - normalising the data in every band to be in the range [0,1]
@@ -576,7 +585,7 @@
 <li>Normalised Difference Moisture Index (NDMI)</li>
 <li>Enhanced Vegetative Index (EVI)</li>
 </ul>
-<p>These indices are constructed specifically to assess the presence of vegetation and moisture from satallite imagery. For more information, see <a href="https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices">here</a>. The updated data is then written back to disk as TFRecord files, so that it can be used for training.</p>
+<p>These indices are constructed specifically to assess the presence of vegetation and moisture from satellite imagery. For more information, see <a href="https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices">here</a>. The updated data is then written back to disk as TFRecord files, so that it can be used for training. The processing task will construct a simple json ledger file (<code>training/airflow/data/droughtwatch_data/*/data_hashes.json</code>) that contains every processed file and its md5sum. The next time it is run, the processing task will first check whether any given file is present in the ledger, and whether the md5sum matches. If everything matches, the data is not reprocessed. This allows for quick retraining of the DL model.</p>
 <p>The model is constructed in Keras and then trained on the processed data. During this process, the user has a choice of which experimentation tracking system to use. By default, the code uses <a href="https://wandb.ai/">Weights and Biases Cloud platform</a>. This allows for easy, convenient, and comprehensive tracking. The other choice is MLFlow, which runs in the same container as the Airflow server. After the model is trained, depending on the settings, it is promoted to the model registry, either in WandB or MLFlow. Regardless of the service used, the model is also uploaded to S3 so it can be used later for inference. To ensure maximum efficiency and portability, the model is converted from the native Keras format to the <a href="https://onnx.ai/">ONNX standard</a>, which produces highly efficient models for inference.</p>
 <p><strong>Thus the basic DAG has two steps: i) Data processing ii) Model training.</strong></p>
 <h2 id="the-model">The model</h2>
@@ -589,7 +598,7 @@
 <li>class 2: 4</li>
 <li>class 3: 6</li>
 </ul>
-<p>We use a standard cross-entropy categorical loss. The user can eaily adjust the following parameters through the config files:</p>
+<p>We use a standard cross-entropy categorical loss. The user can easily adjust the following parameters through the config files:</p>
 <ul>
 <li>learning rate</li>
 <li>batch size</li>
@@ -618,7 +627,7 @@ To see the process of execution, click on any of the boxes and then click "Logs"
 <p><img alt="" src="../imgs/wandb_finished_workspace.png" /></p>
 <p>The logged metrics are:</p>
 <ul>
-<li>Precision and recall for every class (<code>pr_*</code> and <code>re_*</code>). These are arrays <em>at every epoch</em> since they correspond to the precision and recall on a <em>set</em> of thresholds, allowing one to construct the <code>precision-recall</code> or alterntively ROC curve for every class at every epoch</li>
+<li>Precision and recall for every class (<code>pr_*</code> and <code>re_*</code>). These are arrays <em>at every epoch</em> since they correspond to the precision and recall on a <em>set</em> of thresholds, allowing one to construct the <code>precision-recall</code> or alternatively ROC curve for every class at every epoch</li>
 <li>Accuracy</li>
 <li>Loss</li>
 </ul>

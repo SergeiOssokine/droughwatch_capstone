@@ -532,11 +532,11 @@
 <p><img alt="" src="../imgs/state_machine.png" /></p>
 <p>The three tasks here are, of course:</p>
 <ul>
-<li>Processing: turn raw data into processed data ready to be used for the model. This reuses the <a href="">same code</a> that was used for this purpose in the training pipeline.</li>
-<li>Inference: the model is loaded and is run on the data to produce predictions for the label of every image.</li>
+<li>Processing: turn raw data into processed data ready to be used for the model. This reuses the <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/includes/parse_data.py">same code</a> that was used for this purpose in the training pipeline. Additionally, this time every image in every file is given a unique uuid which are stored inside the TFRecords  file.</li>
+<li>Inference: the model is loaded and is run on the data to produce predictions for the label of every image. The predictions are written to a parquet file, storing the unique ID and the prediction class for every image.</li>
 <li>Observe: a set of metrics looking at the behaviour of the model is computed using <code>Evidently</code>:<ol>
-<li>The class distribution (i.e., what share of all the predictions fall in each class) as measured by the $\chi^{2}$ <a href="https://docs.evidentlyai.com/reference/data-drift-algorithm">test</a>.</li>
-<li>The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data (note: for simplicity we used synthetic reference data in this project that simply reflects the true underlying class distribution of the data).</li>
+<li>The class distribution (i.e., what share of all the predictions fall in each class).</li>
+<li>The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data  as measured by the $\chi^{2}$ <a href="https://docs.evidentlyai.com/reference/data-drift-algorithm">test</a>.(note: for simplicity we used synthetic reference data in this project that simply reflects the true underlying class distribution of the data).</li>
 </ol>
 </li>
 </ul>
@@ -569,13 +569,13 @@
 <p>In order to schedule the execution of the AWS StepFunction state machine, we use AWS EventBridge scheduler, which is basically just a CRON job that runs on a given cadence. By default, this is 24 hours.</p>
 <p>Finally, for the observability dashboard, we elect to run a local <code>Grafana</code> server in <code>Docker</code>. In order for this server to be able to access the data in the AWS RDS database, we set up an EC2 instance in the same network as RDS and create an ssh tunnel to forward the information.</p>
 <p>Thus, the complete system looks as follows:</p>
-<p><img alt="" src="./imgs/architecture.svg" /></p>
-<p>To provision these resouces, we use Terraform (both for AWS resouces <em>and</em> the local Grafana dashboard). The necessary variables are all configured automatically with <code>setup_inference_infra</code>, except for sensitive values (the database credentials and ssh key for ssh tunnel connection). You can find the Terraform infrastructure <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup/tf">here</a> for AWS resources in the inference step, and <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/observability/tf">here</a> for local <code>Grafana</code>/<code>Docker</code> resources in the observability step. A complete, automatically-generated list of all AWS resources, can be found <a href="../tf_aws/">here</a>.</p>
+<p><img alt="" src="../imgs/architecture.svg" /></p>
+<p>To provision these resources, we use Terraform (both for AWS resources <em>and</em> the local Grafana dashboard). The necessary variables are all configured automatically with <code>setup_inference_infra</code>, except for sensitive values (the database credentials and ssh key for ssh tunnel connection). You can find the Terraform infrastructure <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup/tf">here</a> for AWS resources in the inference step, and <a href="https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/observability/tf">here</a> for local <code>Grafana</code>/<code>Docker</code> resources in the observability step. A complete, automatically-generated list of all AWS resources, can be found <a href="../tf_aws/">here</a>.</p>
 <h3 id="running-inference-on-new-data">Running inference on new data</h3>
 <p>As mentioned in the user guide, you can automatically upload some new data sets to S3 and trigger the pipeline on each by using:</p>
-<pre><code class="language-bash">make upload_and_run_inference
-</code></pre>
-<p>You can follow along with the execution by heading to the <a href="https://console.aws.amazon.com/states/home">AWS CloudConsole</a> in the StepFunctions service, where you should see the <code>droughtwatch-inference</code> state machine. Clicking it will show a list of executions. Clicking on one which is still running will show you a live step-by-step progress of the pipeline, along with convenient links to AWS CloudWatch logs of the Lambda function executions. If all goes well, you should see things proceed as follows:</p>
+<p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>upload_and_run_inference
+</code></pre></div>
+You can follow along with the execution by heading to the <a href="https://console.aws.amazon.com/states/home">AWS CloudConsole</a> in the StepFunctions service, where you should see the <code>droughtwatch-inference</code> state machine. Clicking it will show a list of executions. Clicking on one which is still running will show you a live step-by-step progress of the pipeline, along with convenient links to AWS CloudWatch logs of the Lambda function executions. If all goes well, you should see things proceed as follows:</p>
 <p><img alt="" src="../imgs/statemachine.gif" /></p>
 <p>Every step of the pipeline can be monitored, and if a particular step fails, one receives a message with the traceback. An example (triggered purposefully) can be seen below:</p>
 <p><img alt="" src="../imgs/inference_fail.png" /></p>
