@@ -28,6 +28,7 @@ def setup_terraform_default_vars(cfg: DictConfig, path_to_vars: str) -> None:
         path_to_vars (str): The absolute path (including file name) to
             the .tfvars file
     """
+    logger.info(f"Updating the terraform variables in {path_to_vars}")
     infra_config = cfg.infra
     config_gen = dict_generator(OmegaConf.to_container(infra_config.inference))
     with open(path_to_vars, "w", encoding="utf-8") as fw:
