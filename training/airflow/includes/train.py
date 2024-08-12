@@ -162,10 +162,11 @@ def train_model(
     features_config: str = "default",
     logging_config: str = "default",
     override_args: Dict[str, Any] | None = None,
-):
+) -> None:
     """A wrapper around the training code that reads the config
     and applies any overrides before calling the actual training.
     See ./setp/conf/training for options.
+
     Args:
         model_config (str, optional): Which model configuration to use. Defaults to "default".
         features_config (str, optional): Which features to use. Defaults to "default".
@@ -220,6 +221,8 @@ def train_cnn(cfg: DictConfig):
 
     model = construct_baseline_model(cfg)
     run_name = f"{cfg.model.name}_{generate_random_id()}"
+    config = omegaconf.OmegaConf.to_container(cfg, resolve=True, throw_on_missing=True)
+    config.pop("logging")
     if logging_style == "wandb":
         # Do cloud-based wandb logging
         try:
@@ -236,10 +239,6 @@ def train_cnn(cfg: DictConfig):
 
         run = wandb.init(name=run_name, project=PROJECT_NAME)
 
-        config = omegaconf.OmegaConf.to_container(
-            cfg, resolve=True, throw_on_missing=True
-        )
-        config.pop("logging")
         wf_cfg = wandb.config
         wf_cfg.setdefaults(config)
         callbacks = [WandbMetricsLogger()]
@@ -264,6 +263,7 @@ def train_cnn(cfg: DictConfig):
         )
     if logging_style == "mlflow":
         mlflow.keras.log_model(model, "artifacts")
+        mlflow.log_params(config)
 
     if cfg.model.register:
         # We want to register this model in the model registry so we can
