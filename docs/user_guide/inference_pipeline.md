@@ -11,8 +11,8 @@ The three tasks here are, of course:
 - Processing: turn raw data into processed data ready to be used for the model. This reuses the [same code]() that was used for this purpose in the training pipeline.
 - Inference: the model is loaded and is run on the data to produce predictions for the label of every image.
 - Observe: a set of metrics looking at the behaviour of the model is computed using `Evidently`:
-    1. The class distribution (i.e., what share of all the predictions fall in each class) as measured by the $\chi^{2}$ [test](https://docs.evidentlyai.com/reference/data-drift-algorithm).
-    2. The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data (note: for simplicity we used synthetic reference data in this project that simply reflects the true underlying class distribution of the data).
+    1. The class distribution (i.e., what share of all the predictions fall in each class).
+    2. The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data  as measured by the $\chi^{2}$ [test](https://docs.evidentlyai.com/reference/data-drift-algorithm).(note: for simplicity we used synthetic reference data in this project that simply reflects the true underlying class distribution of the data).
 
 
 Each task is followed by a choice node, which checks the output of the task. Depending on the task's success or failure it continues along the graph to the correct next step. In the above, all successful executions take the _right_ branch.
