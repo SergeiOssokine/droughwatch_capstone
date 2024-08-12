@@ -105,7 +105,7 @@ You can then change the values in `./setup/conf/config.yaml`. Most importantly:
 
 - `training.model_registry_s3_bucket`: Name of the S3 bucket that will be created to store models that are promoted to the model registry. **Make sure to pick a globally unique name** (using `uuidgen` may be helpful here).
 - `training.logging.style`: This determines whether the experiment tracking is done using WandB in the cloud or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be `wandb` or `mlflow`.
-- `training.logging.wandb_org_name`: Name of the org created when setting up WandB. Only need to change this if WandB is used, otherwise leave the default.
+- `training.logging.wandb_org_name`: Name of the org created when setting up WandB. Only need to change this if WandB is used, otherwise leave the default. **Note: you have to add `-org` to the end for the model registry to work**. Thus, if you have an organization name `fantastic_cats`, this name should be `fantastic_cats-org`.
 - `infra.aws_region`: The region in which all AWS services will be deployed.
 - `infra.training.use_gpu_training`: Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities > 6 are supported. You will also need to set up the nvidia Docker toolkit, as described [here](./Docker_GPU.md).
 - `infra.inference.data_bucket`: The name of the bucket where new data will be added to run batch inference.
