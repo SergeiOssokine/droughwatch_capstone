@@ -19,7 +19,7 @@ We also add several derived features which can be useful in training, namely:
 - Normalised Difference Moisture Index (NDMI)
 - Enhanced Vegetative Index (EVI)
 
-These indices are constructed specifically to assess the presence of vegetation and moisture from satallite imagery. For more information, see [here](https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices). The updated data is then written back to disk as TFRecord files, so that it can be used for training.
+These indices are constructed specifically to assess the presence of vegetation and moisture from satellite imagery. For more information, see [here](https://www.usgs.gov/landsat-missions/landsat-surface-reflectance-derived-spectral-indices). The updated data is then written back to disk as TFRecord files, so that it can be used for training. The processing task will construct a simple json ledger file (`training/airflow/data/droughtwatch_data/*/data_hashes.json`) that contains every processed file and its md5sum. The next time it is run, the processing task will first check whether any given file is present in the ledger, and whether the md5sum matches. If everything matches, the data is not reprocessed. This allows for quick retraining of the DL model.
 
 The model is constructed in Keras and then trained on the processed data. During this process, the user has a choice of which experimentation tracking system to use. By default, the code uses [Weights and Biases Cloud platform](https://wandb.ai/). This allows for easy, convenient, and comprehensive tracking. The other choice is MLFlow, which runs in the same container as the Airflow server. After the model is trained, depending on the settings, it is promoted to the model registry, either in WandB or MLFlow. Regardless of the service used, the model is also uploaded to S3 so it can be used later for inference. To ensure maximum efficiency and portability, the model is converted from the native Keras format to the [ONNX standard](https://onnx.ai/), which produces highly efficient models for inference.
 
@@ -40,7 +40,7 @@ The training data contains a class imbalance: 60% of all labels are of class 0 (
 - class 3: 6
 
 
-We use a standard cross-entropy categorical loss. The user can eaily adjust the following parameters through the config files:
+We use a standard cross-entropy categorical loss. The user can easily adjust the following parameters through the config files:
 
 - learning rate
 - batch size
@@ -87,7 +87,7 @@ Once the run has a couple of epochs, click on "Workspace" to see some of the log
 
 The logged metrics are:
 
-- Precision and recall for every class (`pr_*` and `re_*`). These are arrays _at every epoch_ since they correspond to the precision and recall on a _set_ of thresholds, allowing one to construct the `precision-recall` or alterntively ROC curve for every class at every epoch
+- Precision and recall for every class (`pr_*` and `re_*`). These are arrays _at every epoch_ since they correspond to the precision and recall on a _set_ of thresholds, allowing one to construct the `precision-recall` or alternatively ROC curve for every class at every epoch
 - Accuracy
 - Loss
 
