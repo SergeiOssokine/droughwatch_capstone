@@ -29,7 +29,7 @@ In order to be able to execute this project, you will need:
 - Terraform (v1.9.3 or later)
 - aws cli==2.17.5
 - jq-1.6
-- GNU make
+- GNU make (4.3 or later)
 
 You will also need an AWS account with sufficient privileges. Some resources will cost money; for a Free Tier account, this should be less than 1 USD.
 
@@ -46,7 +46,7 @@ Setup the dev environment by running (this will use `uv` to create a new virtual
 make setup_env
 ```
 
-Note that since we will be training CNNs, it is highly desirable to run on a machine with CUDA-capable GPU, or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on an NVidia GTX 1060 6GB.
+Note that since we will be training CNNs, it is highly desirable to run on a machine with CUDA-capable GPU, or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on an NVidia GTX 1060 6GB. Note that you will also need at least 14 GB of RAM.
 
 ### Building the documentation (optional)
 
