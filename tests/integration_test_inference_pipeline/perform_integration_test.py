@@ -103,7 +103,6 @@ def perform_checks(config: DictConfig, settings: Dict[str, Any], container) -> N
             result.pop("timestamp")
             # We check that the results in the "metrics" database matches our expectations
             # We compare all columns except timestamp, for obvious reasons
-            print(result)
             if DeepDiff(result, expectation, math_epsilon=1e-6):
                 logger.critical(
                     "The lambda function result and the expectations differ:"
