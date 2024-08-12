@@ -8,8 +8,8 @@ The inference pipeline is run on the AWS cloud and is orchestrated via [AWS Step
 
 The three tasks here are, of course:
 
-- Processing: turn raw data into processed data ready to be used for the model. This reuses the [same code]() that was used for this purpose in the training pipeline.
-- Inference: the model is loaded and is run on the data to produce predictions for the label of every image.
+- Processing: turn raw data into processed data ready to be used for the model. This reuses the [same code](https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/training/airflow/includes/parse_data.py) that was used for this purpose in the training pipeline. Additionally, this time every image in every file is given a unique uuid which are stored inside the TFRecords  file.
+- Inference: the model is loaded and is run on the data to produce predictions for the label of every image. The predictions are written to a parquet file, storing the unique ID and the prediction class for every image.
 - Observe: a set of metrics looking at the behaviour of the model is computed using `Evidently`:
     1. The class distribution (i.e., what share of all the predictions fall in each class).
     2. The prediction drift: a measure of the difference between the distribution of predictions classes on the new data vs the distribution on the training data  as measured by the $\chi^{2}$ [test](https://docs.evidentlyai.com/reference/data-drift-algorithm).(note: for simplicity we used synthetic reference data in this project that simply reflects the true underlying class distribution of the data).
@@ -48,7 +48,7 @@ Thus, the complete system looks as follows:
 ![](./imgs/architecture.svg)
 
 
-To provision these resouces, we use Terraform (both for AWS resouces _and_ the local Grafana dashboard). The necessary variables are all configured automatically with `setup_inference_infra`, except for sensitive values (the database credentials and ssh key for ssh tunnel connection). You can find the Terraform infrastructure [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup/tf) for AWS resources in the inference step, and [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/observability/tf) for local `Grafana`/`Docker` resources in the observability step. A complete, automatically-generated list of all AWS resources, can be found [here](tf_aws.md).
+To provision these resources, we use Terraform (both for AWS resources _and_ the local Grafana dashboard). The necessary variables are all configured automatically with `setup_inference_infra`, except for sensitive values (the database credentials and ssh key for ssh tunnel connection). You can find the Terraform infrastructure [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/setup/tf) for AWS resources in the inference step, and [here](https://github.com/SergeiOssokine/droughtwatch_capstone/tree/main/inference/observability/tf) for local `Grafana`/`Docker` resources in the observability step. A complete, automatically-generated list of all AWS resources, can be found [here](tf_aws.md).
 
 
 
