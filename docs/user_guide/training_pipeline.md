@@ -4,7 +4,15 @@ The training process is orchestrated using [Apache Airflow](https://airflow.apac
 
 The diagram below shows the overall architecture of the training pipeline. The entire training environment is inside a Docker container for reproducibility and ease of deployment.
 
-![](imgs/architecture_training.svg)
+
+
+=== "W&B-based"
+
+    ![](imgs/architecture_training.svg)
+
+=== "MLFlow-based"
+
+    ![](./imgs/architecture_training_mlflow.svg)
 
 The tasks to be performed are organised in DAGs (Directed Acyclic Graphs), where each node corresponds to a given task. Airflow keeps track of the dependencies between tasks, as well as the logging of each task execution and the scheduling of the DAGs. Given that our model uses a large amount of data, we elected not to to handle the downloading of the raw data as a task in a DAG. Instead we use [a script](https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/utils/download_data.py) that downloads the data to local storage.
 

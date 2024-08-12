@@ -8,6 +8,12 @@ nav:
   - 'Python API':
     - Training module: "python_docs/python_docs_training.md"
     - Inference module: "python_docs/python_docs_inference.md"
+
+markdown_extensions:
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+
 theme:
   name: material
 plugins:
