@@ -212,7 +212,7 @@ This will produce a command that looks like the following
 ssh -i /home/sergei/.ssh/id_ed25519 ubuntu@i-0be7a30f923f2d693 -o ServerAliveInterval=30 -o ProxyCommand='aws ec2-instance-connect open-tunnel --instance-id i-0be7a30f923f2d693' -L 5432:droughtwatch.cbesic40wlrm.us-east-1.rds.amazonaws.com:5432
 ```
 Open another terminal window and execute this command to create the ssh tunnel.
-Finally run:
+Finally run (note that the the database name, unless it was changed in the config, should be `droughtwatch`):
 
 ```bash
 make setup_inference_observability

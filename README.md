@@ -20,4 +20,4 @@ We create an entire end-to-end pipeline to train, test, deploy and monitor such 
 
 For the documentation, please head over to [here](https://sergeiossokine.github.io/droughtwatch_capstone/).
 
-Alternatively, you can navigate the entire documentation in the Github repository, starting [here](https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/docs/user_guide/user_guide.md)
+Alternatively, you can navigate the entire documentation in the Github repository, starting [here](https://github.com/SergeiOssokine/droughtwatch_capstone/blob/main/docs/user_guide/user_guide.md). However, using the documentation is highly recommended!
