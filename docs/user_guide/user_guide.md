@@ -54,6 +54,7 @@ You can build and view a nicely rendered version of this document as well as add
 
 
 ```bash
+source .mlops/bin/activate
 mkdocs serve -a 'localhost:7777'
 ```
 
@@ -105,7 +106,7 @@ You can then change the values in `./setup/conf/config.yaml`. Most importantly:
 
 - `training.model_registry_s3_bucket`: Name of the S3 bucket that will be created to store models that are promoted to the model registry. **Make sure to pick a globally unique name** (using `uuidgen` may be helpful here).
 - `training.logging.style`: This determines whether the experiment tracking is done using WandB in the cloud or locally using MLFlow (note that this means the tracking and backend server are local, i.e. inside the docker stack, while models in the registry will still be written to S3). Can either be `wandb` or `mlflow`.
-- `training.logging.wandb_org_name`: Name of the org created when setting up WandB. Only need to change this if WandB is used, otherwise leave the default. **Note: you have to add `-org` to the end for the model registry to work**. Thus, if you have an organization name `fantastic_cats`, this name should be `fantastic_cats-org`.
+- `training.logging.wandb_org_name`: Name of the org created when setting up WandB. Only change this if WandB is used, otherwise leave the default. **Note: you have to add `-org` to the end for the model registry to work**. Thus, if you have an organization name `fantastic_cats`, this name should be `fantastic_cats-org`.
 - `infra.aws_region`: The region in which all AWS services will be deployed.
 - `infra.training.use_gpu_training`: Whether a GPU will be used (0 means no, 1 means yes). Note that only nVidia GPUs with compute capabilities > 6 are supported. You will also need to set up the nvidia Docker toolkit, as described [here](./Docker_GPU.md).
 - `infra.inference.data_bucket`: The name of the bucket where new data will be added to run batch inference.
@@ -137,7 +138,7 @@ make train_baseline
 ```
 This will trigger the `baseline` dag (you may have to reload the Airflow UI webpage to see the progress).
 Note that the first time you trigger this, it will start by pre-processing the image data (filtering and feature engineering). Since there is a lot of data (>100k images) this may take a few minutes (~10). Once the `data_processing` task is done, you should be able to see the training progress either on `MLFlow`(point your browser to `localhost:5012`) or `wandb`.
-If using `wandb`, you should also see the run appear under `USERNAME/droughtwatch_capstone` project. It should take 5 minutes to train on the GPU. You should see the standard metrics like training and validation accuracy and loss, as well as others.
+If using `wandb`, you should also see the run appear under `USERNAME/droughtwatch_capstone` project. It should take 5 minutes to train on the GPU. You should see the standard metrics like training and validation accuracy and loss, as well as others. (Note that by default the training is set to go for only 2 epochs. To change this behaviour, change the `config.yaml` file to  override `training.model.epochs`.)
 
 The DAG is configured to run every 24 hours to retrain the model in case new data is added.
 
