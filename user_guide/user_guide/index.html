@@ -761,20 +761,21 @@
 
 <h1 id="droughtwatch-capstone-project">Droughtwatch capstone project</h1>
 <h2 id="background-and-problem-statement">Background and problem statement</h2>
-<p>With the ever-increasing rate of extreme weather events caused by climate change, it is becoming more and more urgent to be able to predict the impact of these events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the threat of lost crops and food insecurity. Agricultural insurance provides a means to offset some of that risk by offering farmers and pastoralists by compensating them for lost crops and livestock, but in order to assess the losses and the compensation, one requires data from the affected region. Traditionally, this was done with on-the-ground measurements, such as moisture detectors and crop cuttings. However, operations to gather these measurements are hard to conduct at scale, and remote sensing techniques using satellite imagery have become more prevalent.</p>
+<p>With the ever-increasing rate of extreme weather events caused by climate change, it is becoming more and more urgent to be able to predict the impact of these events on agriculture. Severe droughts in particular are one of the most pressing dangers to farmers, bringing the threat of lost crops and food insecurity. Agricultural insurance provides a means to offset some of that risk by offering farmers and pastoralists compensation for lost crops and livestock, but in order to assess the losses and the compensation, one requires data from the affected region. Traditionally, this was done with on-the-ground measurements, such as moisture detectors and crop cuttings. However, operations to gather these measurements are hard to conduct at scale, and remote sensing techniques using satellite imagery have become more prevalent.</p>
 <p>In this project, we take inspiration and a great dataset from the communal <a href="https://wandb.ai/wandb/droughtwatch/benchmark"><code>droughtwatch</code> benchmark</a> hosted by Weights and Biases. <strong>We seek to construct a deep learning model that can predict the forage quality of land based on satellite imagery, without the need for expensive ground-based survey campaigns</strong>. The model must take in as input satellite image data in several different bands and output the number of goats that could be supported at the area <em>in the center of the image</em>. For more background and information on the dataset, see <a href="https://arxiv.org/abs/2004.04081">here</a>.</p>
 <p>We create an entire end-to-end pipeline to train, test, deploy and monitor such a model. The tech stack is briefly summarised here:</p>
 <ul>
-<li>Docker for containerisation</li>
-<li>Airflow for training orchestration</li>
-<li>Keras/ONNX for training and building the model</li>
-<li>Weights and Biases or optionally MLFlow for experimentation tracking and model registry</li>
-<li>AWS StepFunctions/Lambda/RDS/ECR/S3/EventBridge for the batch inference pipeline</li>
-<li>Evidently.ai/Grafana for model observability</li>
-<li>Terraform for deploying AWS resources</li>
-<li>Hydra/OmegaConf for project configuration</li>
-<li>mkdocs for documentation</li>
-<li>pytest for unit tests</li>
+<li><a href="https://www.docker.com/">Docker</a> for containerisation</li>
+<li><a href="https://airflow.apache.org/">Airflow</a> for training orchestration</li>
+<li><a href="https://keras.io/">Keras</a>/<a href="https://onnx.ai/">ONNX</a> for training and building the model</li>
+<li><a href="https://wandb.ai/site">Weights and Biases</a> or optionally <a href="https://mlflow.org/">MLFlow</a> for experimentation tracking and model registry</li>
+<li><a href="https://aws.amazon.com/">AWS</a> StepFunctions/Lambda/RDS/ECR/S3/EventBridge for the batch inference pipeline</li>
+<li><a href="https://www.evidentlyai.com/">Evidently AI</a>/<a href="https://grafana.com/">Grafana</a> for model observability</li>
+<li><a href="https://www.terraform.io/">Terraform</a> for provisioning resources</li>
+<li><a href="https://hydra.cc/">Hydra</a>/<a href="https://github.com/omry/omegaconf">OmegaConf</a> for project configuration</li>
+<li><a href="https://www.mkdocs.org/">mkdocs</a> for documentation</li>
+<li><a href="https://docs.pytest.org/en/stable/">pytest</a> for unit tests</li>
+<li><a href="https://www.localstack.cloud/">Localstack</a> for inference integration tests</li>
 </ul>
 <h2 id="initial-setup">Initial setup</h2>
 <p>This project assumes that one is using Linux/MacOS locally. If on Windows, please run inside WSL2.</p>
@@ -917,16 +918,18 @@ This will produce a command that looks like the following
 </code></pre></div>
 Open another terminal window and execute this command to create the ssh tunnel.
 Finally run (note that the the database name, unless it was changed in the config, should be <code>droughtwatch</code>):</p>
-<p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>setup_inference_observability
+<div class="highlight"><pre><span></span><code>make<span class="w"> </span>setup_inference_observability
 </code></pre></div>
-This will do the following:
+<p>This will do the following:
 1. Launch a docker container running grafana
-2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same username and password again.</p>
+2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same database username and password again.</p>
 <p>That's it!</p>
 <h3 id="part-ii-running-inference-and-observability">Part II: Running inference and observability</h3>
-<p>First we need to upload some data to s3 for our model to ingest. While 24 hours is a reasonable cadence for real-world scenarios with satellite data, for demonstration purposes we don't want to wait that long. Thus we provide a script that:
-- Uploads a new set of data every 20 seconds for a total of 15 datasets
-- Runs the inference pipeline on it (and blocks until each run is finished)</p>
+<p>First we need to upload some data to s3 for our model to ingest. While 24 hours is a reasonable cadence for real-world scenarios with satellite data, for demonstration purposes we don't want to wait that long. Thus we provide a script that:</p>
+<ul>
+<li>Uploads a new set of data every 20 seconds for a total of 15 datasets</li>
+<li>Runs the inference pipeline on it (and blocks until each run is finished)</li>
+</ul>
 <p>You can launch the script by running:</p>
 <p><div class="highlight"><pre><span></span><code>make<span class="w"> </span>upload_and_run_inference
 </code></pre></div>
