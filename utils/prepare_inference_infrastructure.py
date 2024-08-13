@@ -80,7 +80,7 @@ if __name__ == "__main__":
     local_name = f"inference:{TAG}"
     logger.info(f"Building local image {local_name}")
     docker_cmd = (
-        'docker build --build-arg="PREFIX=inference/setup" -f'
+        'docker build --build-arg="PREFIX=inference/setup" -f '
         f'inference/setup/Dockerfile -t {local_name} .'
     )
     sp.check_call(
