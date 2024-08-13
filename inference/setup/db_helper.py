@@ -1,3 +1,8 @@
+"""
+This module contains various helper scripts for accessing and manipulating a
+postgres database.
+"""
+
 import json
 from collections import namedtuple
 from typing import Dict
@@ -43,17 +48,16 @@ def prep_db(
     port = db_config["port"]
     user = db_config["username"]
     password = db_config["password"]
-    with psycopg.connect(
+    with psycopg.connect(  # pylint: disable=E1129
         f"host={host} port={port} dbname=postgres user={user} password={password}",
         autocommit=True,
     ) as conn:
         res = conn.execute(f"SELECT 1 FROM pg_database WHERE datname='{db_name}'")
         if len(res.fetchall()) == 0:
             conn.execute(f"create database {db_name};")
-        with psycopg.connect(
+        with psycopg.connect(  # pylint: disable=E1129
             f"host={host} port={port} dbname={db_name} user={user} password={password}"
         ) as conn:
-            # print(create_table_statement)
             conn.execute(create_table_statement)
 
 
@@ -78,8 +82,16 @@ UPDATE {table}
 SET {update.field} = '{update.value}'
 WHERE {cond}
 """
-    with psycopg.connect(
-        f"host={db_config['host']} port={db_config['port']} dbname={db_name} user={db_config['username']} password={db_config['password']}",
+    connection_string = (
+        f"host={db_config['host']} "
+        f"port={db_config['port']} "
+        f"dbname={db_name} "
+        f"user={db_config['username']} "
+        f"password={db_config['password']}"
+    )
+    print(connection_string)
+    with psycopg.connect(  # pylint: disable=E1129
+        connection_string,
         autocommit=True,
     ) as conn:
         with conn.cursor() as curr:
