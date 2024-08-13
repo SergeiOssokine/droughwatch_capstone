@@ -1,3 +1,8 @@
+"""Module to help setup the necessary infrastructure for
+inference. In particular, sets up terraforms vars, builds
+the Lambda image and pushes it to an ECR repo.
+"""
+
 import base64
 import logging
 import os
@@ -74,8 +79,12 @@ if __name__ == "__main__":
     TAG = "v0.1"
     local_name = f"inference:{TAG}"
     logger.info(f"Building local image {local_name}")
+    docker_cmd = (
+        'docker build --build-arg="PREFIX=inference/setup" -f',
+        f'inference/setup/Dockerfile -t {local_name} .',
+    )
     sp.check_call(
-        f'docker build --build-arg="PREFIX=inference/setup" -f inference/setup/Dockerfile -t {local_name} .',
+        docker_cmd,
         shell=True,
     )
 

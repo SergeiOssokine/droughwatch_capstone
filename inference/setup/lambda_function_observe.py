@@ -1,5 +1,7 @@
 import datetime
+import json
 import os
+import traceback
 from collections import OrderedDict
 from typing import Any, Dict, Union
 
@@ -78,7 +80,18 @@ def extract_metric_data(result: Dict[str, Any]) -> Dict[str, Union[int, float, s
     return result_metrics
 
 
-def compute_metrics(current_data: pd.DataFrame, ref_data: pd.DataFrame):
+def compute_metrics(
+    current_data: pd.DataFrame, ref_data: pd.DataFrame
+) -> Dict[str, float | int]:
+    """Compute various metrics for the prediction and data
+
+    Args:
+        current_data (pd.DataFrame): The latest data
+        ref_data (pd.DataFrame): The training data
+
+    Returns:
+        Dict[str, float | int]: The dict of metrics
+    """
     # Generate the report
     report = Report(
         metrics=[
@@ -103,7 +116,16 @@ def compute_metrics(current_data: pd.DataFrame, ref_data: pd.DataFrame):
     return metrics
 
 
-def get_new_predictions(db_config):
+def get_new_predictions(db_config: Dict[str, str | int | float]) -> set:
+    """Find all prediction files that no metrics computed by comparing
+    the ledger and metrics tables.
+
+    Args:
+        db_config (Dict[str, str  |  int  |  float]): Database config
+
+    Returns:
+        set: The files that have not been observed
+    """
     with psycopg.connect(  # pylint: disable=E1129
         f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
@@ -117,40 +139,49 @@ def get_new_predictions(db_config):
 
 
 def lambda_handler(event, context):
-    ev = event["body"]
-    bucket_name = ev["data_bucket_name"]
+    try:
+        ev = event["body"]
+        bucket_name = ev["data_bucket_name"]
 
-    if AWS_ENDPOINT_URL is not None:
-        wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
+        if AWS_ENDPOINT_URL is not None:
+            wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
 
-    reference_data_path = os.getenv("reference_path", "reference_data.parquet")
-    db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
+        reference_data_path = os.getenv("reference_path", "reference_data.parquet")
+        db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
 
-    # We get the unobserved cases
+        prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
+        host = db_config["host"]
+        user = db_config["username"]
+        port = db_config["port"]
+        password = db_config["password"]
+        # We get the unobserved cases
+        predictions_list = get_new_predictions(db_config)
+        with psycopg.connect(  # pylint: disable=E1129
+            f"host={host} port={port} user={user} dbname={DROUGHTWATCH_DB} password={password}",
+            autocommit=True,
+        ) as conn:
+            for prediction in predictions_list:
+                # Compute the metrics we want
+                df = wr.s3.read_parquet(path=f"s3://{bucket_name}/{prediction}")
+                df_ref = wr.s3.read_parquet(
+                    path=f"s3://{bucket_name}/{reference_data_path}"
+                )
+                metrics = OrderedDict()
+                metrics.update(predictions_path=prediction)
+                metrics.update(**compute_metrics(df, df_ref))
 
-    prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
-    host = db_config["host"]
-    user = db_config["username"]
-    port = db_config["port"]
-    password = db_config["password"]
-    predictions_list = get_new_predictions(db_config)
-    with psycopg.connect(  # pylint: disable=E1129
-        f"host={host} port={port} user={user} dbname={DROUGHTWATCH_DB} password={password}",
-        autocommit=True,
-    ) as conn:
-        for prediction in predictions_list:
-            # Compute the metrics we want
-            df = wr.s3.read_parquet(path=f"s3://{bucket_name}/{prediction}")
-            df_ref = wr.s3.read_parquet(
-                path=f"s3://{bucket_name}/{reference_data_path}"
-            )
-            metrics = OrderedDict()
-            metrics.update(predictions_path=prediction)
-            metrics.update(**compute_metrics(df, df_ref))
-
-            with conn.cursor() as curr:
-                insert_row_into_table(curr, metrics, "metrics")
-    return {"statusCode": 200, "body": "Updated observation table"}
+                with conn.cursor() as curr:
+                    insert_row_into_table(curr, metrics, "metrics")
+        return {"statusCode": 200, "body": "Updated observation table"}
+    except Exception as e:  # pylint: disable=W0718
+        # Something has gone wrong, capture the traceback
+        tb_string = traceback.format_exc()
+        print(tb_string)
+        # Make sure to return the exception and traceback in the response
+        return {
+            "statusCode": 500,
+            "body": json.dumps({"Exception": str(e), "Traceback": tb_string}),
+        }
 
 
 if __name__ == "__main__":

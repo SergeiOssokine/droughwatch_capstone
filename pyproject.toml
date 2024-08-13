@@ -2,7 +2,6 @@
 disable = [
     "missing-final-newline",
     "missing-class-docstring",
-    "missing-module-docstring",
     "invalid-name",
     "too-few-public-methods",
     "logging-fstring-interpolation",

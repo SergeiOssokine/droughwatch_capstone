@@ -1,3 +1,8 @@
+"""
+Module to help setup the necessary infra for training. This involves
+both local (Docker) resources and S3 model bucket
+"""
+
 import logging
 import os
 import subprocess as sp
@@ -45,12 +50,18 @@ def make_model_registry_bucket(cfg: DictConfig) -> None:
 
 
 def assemble_env_file(cfg: DictConfig) -> None:
+    """Create a standar .ev file that will be passed to the training
+    Docker container
+
+    Args:
+        cfg (DictConfig): The project configuration dict
+    """
     logger.info("Assembling the .env file needed to configure Airflow docker")
     postgres_config = cfg.infra.training.postgres
     airflow_config = cfg.infra.training.airflow
     s3_bucket_name = cfg.training.model_registry_s3_bucket
     env_path = "./training/setup/.env"
-    with open(env_path, "w") as fw:
+    with open(env_path, "w", encoding="utf-8") as fw:
         for k, v in postgres_config.items():
             fw.write(f"{k}={v}\n")
         for k, v in airflow_config.items():

@@ -1,8 +1,12 @@
+"""
+This module contains the code that performs inference on processed data.
+"""
+
 import json
 import os
 import tempfile
 import traceback
-from typing import Dict, List
+from typing import Any, Dict, List, Tuple
 
 import awswrangler as wr
 import boto3
@@ -13,12 +17,14 @@ import parse_data
 import psycopg
 import tensorflow as tf
 from db_helper import SqlUpdate, get_credentials, update_table
-from omegaconf import OmegaConf
+from omegaconf import DictConfig, OmegaConf
 
+# In case we are running on localstack
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 DROUGHTWATCH_DB = "droughtwatch"
 LEDGER = "ledger"
 
+# A list of all possible features that can appear in a processed dataset
 features_inference = {
     "B1": tf.io.FixedLenFeature([], tf.string),
     "B2": tf.io.FixedLenFeature([], tf.string),
@@ -73,12 +79,23 @@ def get_dataset(
     return dataset
 
 
-def get_model(s3, path: str):
+def get_model(s3, path: str) -> Tuple[bytes, DictConfig]:
+    """Give the path to the model, get the model and its
+    configuration
+
+    Args:
+        s3 (s3 client): The s3 client
+        path (str): The path to the model
+
+    Returns:
+        Tuple[bytes, DictConfig]: Serialized model, model config
+    """
     # Load model
     registry_bucket_name = os.environ.get("model_registry_s3_bucket")
     response = s3.get_object(
         Bucket=registry_bucket_name, Key=os.path.join(path, "model.onnx")
     )
+    # The model at this point is a binary object
     model = response["Body"].read()
     # Load config
     response = s3.get_object(
@@ -89,8 +106,18 @@ def get_model(s3, path: str):
     return model, config
 
 
-def run_inference(model, dset):
+def run_inference(model: bytes, dset) -> Tuple[np.ndarray, np.ndarray]:
+    """Run the model on the data
+
+    Args:
+        model (bytes): The serialized ONNX model in memory
+        dset (TFRecordsDataset): The dataset
+
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: The predictions and associated IDs
+    """
     providers = ["CPUExecutionProvider"]
+    # Initialize the ONNX run-time.
     m = rt.InferenceSession(model, providers=providers)
     input_name = m.get_inputs()[0].name
     all_onnx_preds = []
@@ -112,7 +139,18 @@ def run_inference(model, dset):
     return result_onnx, np.array(all_ids)
 
 
-def package_predictions(model_results, case_ids):
+def package_predictions(
+    model_results: np.ndarray, case_ids: np.ndarray
+) -> pd.DataFrame:
+    """Package the model predictions into a DataFrame
+
+    Args:
+        model_results (np.ndarray): The probabilities of each class
+        case_ids (np.ndarray): The unique ids for every image
+
+    Returns:
+        pd.DataFrame: Dataframe of predictions
+    """
     class_label = np.argmax(model_results, axis=-1)
     p_class_label = np.amax(model_results, axis=-1)
     model_results = np.hstack(
@@ -123,6 +161,8 @@ def package_predictions(model_results, case_ids):
             p_class_label[:, None],
         )
     )
+    # Store the probabilities of each class, the actual predicted label,
+    # and the probability of that label
     df = pd.DataFrame(
         model_results,
         columns=["ID", "P_0", "P_1", "P_2", "P_3", "label", "P_label"],
@@ -141,7 +181,16 @@ def package_predictions(model_results, case_ids):
     return df
 
 
-def get_new_cases(db_config):
+def get_new_cases(db_config: Dict[str, str | int | float]) -> List[str]:
+    """Find all cases where the processed data exists but no predictions
+    are available.
+
+    Args:
+        db_config (Dict[str, str  |  int  |  float]): Database config
+
+    Returns:
+        List[str]: Names of all the processed files with no predictions
+    """
     with psycopg.connect(  # pylint: disable=E1129
         f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
         autocommit=True,
@@ -151,9 +200,22 @@ def get_new_cases(db_config):
     return new_cases["processed_path"].values
 
 
-def lambda_handler(event, context):
-    try:
+def lambda_handler(event, context) -> Dict[str, Any]:
+    """Lambda handler for inference. Performs the following actions:
+    - Find all processed files with no predictions
+    - Loops over them and runs the model
+    - Saves the predictions back to S3
+    - Updates the ledger DB to indicate which files have been
+    processed
 
+    Args:
+        event
+        context
+
+    Returns:
+        Dict[str,Any]:The body of the response in json form
+    """
+    try:
         # Data from previous step
         ev = event["body"]
         data_bucket_name = ev["data_bucket_name"]
@@ -201,11 +263,13 @@ def lambda_handler(event, context):
             u = SqlUpdate("predictions_path", predictions_path)
             cond = f"processed_path='{key}'"
             update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
-
+        # Return a code for success and pass on the input event
         return {"statusCode": 200, "body": ev}
-    except Exception as e:
+    except Exception as e:  # pylint: disable=W0718
+        # Something has gone wrong, capture the traceback
         tb_string = traceback.format_exc()
         print(tb_string)
+        # Make sure to return the exception and traceback in the response
         return {
             "statusCode": 500,
             "body": json.dumps({"Exception": str(e), "Traceback": tb_string}),
