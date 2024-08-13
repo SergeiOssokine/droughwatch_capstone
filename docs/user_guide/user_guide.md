@@ -217,15 +217,17 @@ Finally run (note that the the database name, unless it was changed in the confi
 ```bash
 make setup_inference_observability
 ```
+
 This will do the following:
 1. Launch a docker container running grafana
-2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same username and password again.
+2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same database username and password again.
 
 That's it!
 
 
 ### Part II: Running inference and observability
 First we need to upload some data to s3 for our model to ingest. While 24 hours is a reasonable cadence for real-world scenarios with satellite data, for demonstration purposes we don't want to wait that long. Thus we provide a script that:
+
 - Uploads a new set of data every 20 seconds for a total of 15 datasets
 - Runs the inference pipeline on it (and blocks until each run is finished)
 
