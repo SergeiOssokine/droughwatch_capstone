@@ -48,7 +48,9 @@ Setup the dev environment by running (this will use `uv` to create a new virtual
 make setup_env
 ```
 
-Note that since we will be training CNNs, it is highly desirable to run on a machine with CUDA-capable GPU, or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on an NVidia GTX 1060 6GB. Note that you will also need at least 14 GB of RAM.
+You will need at least 14 GB of RAM and 40 GB of space.
+
+Note that since we will be training CNNs, it is highly desirable to run on a machine with CUDA-capable GPU, or the training might take a very long time. For reference, the baseline model took about 5 minutes to train on an NVidia GTX 1060 6GB.
 
 ### Building the documentation (optional)
 
