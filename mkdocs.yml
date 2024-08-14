@@ -1,4 +1,5 @@
 site_name: Droughtwatch Capstone Project
+repo_url: https://github.com/SergeiOssokine/droughtwatch_capstone
 nav:
   - "Home": index.md
   - 'User Guide':
@@ -13,9 +14,25 @@ markdown_extensions:
   - pymdownx.superfences
   - pymdownx.tabbed:
       alternate_style: true
+  - pymdownx.magiclink
 
 theme:
   name: material
+  palette:
+
+    # Palette toggle for light mode
+    - scheme: default
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - scheme: slate
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+
+
 plugins:
 - mkdocstrings:
     handlers:
