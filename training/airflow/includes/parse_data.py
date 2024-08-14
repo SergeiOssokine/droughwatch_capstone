@@ -173,11 +173,15 @@ def parse_tf_record(
 
     Args:
         serialized_example (str): Name of the file to parse
-        keylist (List[str] | None, optional): The features to add to the return tensor. Defaults to None.
-        features (Dict[str, tf.io.FixedLenFeature] | None, optional): The description of all the features in the file. Defaults to None.
+        keylist (List[str] | None, optional): The features to add to the
+            return tensor. Defaults to None.
+        features (Dict[str, tf.io.FixedLenFeature] | None, optional): The description
+            of all the features in the file. Defaults to None.
 
     Returns:
-        Tuple[Tensor, Tensor]: First item is the image tensor with shape [nitems,IMG_DIM,IMG_DIM,number of bands]. Second item is a tensor of one-hot encoded labels.
+        Tuple[Tensor, Tensor]: First item is the image tensor with shape
+            [nitems,IMG_DIM,IMG_DIM,number of bands]. Second item is a tensor
+            of one-hot encoded labels.
     """
     if keylist is None:
         keylist = keylist_processed
@@ -229,7 +233,6 @@ def read_raw_tfrecord(
     path: str | List[str],
     keylist: List[str] | None = None,
     features: Dict[str, tf.io.FixedLenFeature] | None = None,
-    s3: bool = False,
 ) -> Dataset[Tuple[Dict[str, Tensor], Tensor]]:
     """Read one or many raw datasets. Will normalize the data and remove any blank
     images.
@@ -237,11 +240,11 @@ def read_raw_tfrecord(
     Args:
         path (str | List[str]): The path to the raw data
         keylist (List[str] | None, optional): The features to use. Defaults to None.
-        features (Dict[str, tf.io.FixedLenFeature] | None, optional): Mapping of each feature inside the file.
-            Defaults to None.
+        features (Dict[str, tf.io.FixedLenFeature] | None, optional): Mapping of each
+            feature inside the file. Defaults to None.
 
     Returns:
-        Dataset: The parsed dataset, as a dict with keys representing features
+        Dataset: The parsed dataset, as a dict, with keys representing features
     """
 
     dataset = tf.data.TFRecordDataset(path)
@@ -266,11 +269,11 @@ def read_processed_tfrecord(
     Args:
         path (str | List[str]): The path to the processed data.
         keylist (List[str] | None, optional): The features to use. Defaults to None.
-        features (Dict[str, tf.io.FixedLenFeature] | None, optional): Mapping of each feature inside the file.
-            Defaults to None.
+        features (Dict[str, tf.io.FixedLenFeature] | None, optional): Mapping of each
+            feature inside the file. Defaults to None.
     Returns:
-        Dataset: The parsed dataset, as a dataset of Tensors. The order of the last dimension is the same
-            as the ordering of features in keylist.
+        Dataset: The parsed dataset, as a dataset of Tensors. The order of the last
+        dimension is the same as the ordering of features in keylist.
     """
     raw_dataset = tf.data.TFRecordDataset(path)
 
@@ -402,7 +405,7 @@ def _process_data(flist: List[str], db_path: str) -> None:
         res[name] = compute_hash(f)
         logger.info(f"Processing {f}")
         process_one_dataset(f)
-    with open(db_path, "w") as fw:
+    with open(db_path, "w", encoding="utf-8") as fw:
         json.dump(res, fw, indent=4)
 
 
@@ -436,7 +439,7 @@ def process_data(
         else:
             # We have a hashes file, check the data hasn't changed
             logger.info("Found existing hash record!")
-            with open(db_path, "r") as fp:
+            with open(db_path, "r", encoding="utf-8") as fp:
                 hashes = json.load(fp)
                 retrain = False
                 for name, hash_signature in track(
