@@ -5,12 +5,18 @@ disable = [
     "invalid-name",
     "too-few-public-methods",
     "logging-fstring-interpolation",
+    "redefined-builtin",
     "E0401",
     "R0801",
-    "W0621"
+    "W0621",
 ]
 [tool.pylint.main]
+# Ignore the path where we put the virtualenv
 ignore-paths = ["^.mlops/.*"]
+
+[tool.pylint.design]
+max-args = 10
+max-locals = 25
 
 [tool.black]
 line-length = 88

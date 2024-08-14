@@ -10,6 +10,10 @@ from typing import Dict
 import boto3
 import psycopg
 
+DROUGHTWATCH_DB = "droughtwatch"
+LEDGER = "ledger"
+METRICS = "metrics"
+
 
 def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
     """Get the DB credentials from AWS secrets manager
@@ -31,6 +35,26 @@ def get_credentials(endpoint_url: str | None = None) -> Dict[str, str]:
     db_config["port"] = tmp_port
 
     return db_config
+
+
+def get_db_connection_string(db_config: Dict[str, str | int | float]) -> str:
+    """Construct a postgres connection string to be used with  psycopg to
+    connect to the database
+
+    Args:
+        db_config (Dict[str, str  |  int  |  float]): Connection info
+
+    Returns:
+        str: The connection string
+    """
+    connection_string = (
+        f"host={db_config['host']} "
+        f"port={db_config['port']} "
+        f"dbname={DROUGHTWATCH_DB} "
+        f"user={db_config['username']} "
+        f"password={db_config['password']}"
+    )
+    return connection_string
 
 
 def prep_db(
@@ -65,7 +89,7 @@ SqlUpdate = namedtuple("SqlUpdate", ["field", "value"])
 
 
 def update_table(
-    table: str, db_name: str, update: SqlUpdate, cond: str, db_config: Dict[str, str]
+    table: str, update: SqlUpdate, cond: str, db_config: Dict[str, str]
 ) -> None:
     """Generate SQL code to update a certain column in a given table and database
 
@@ -82,14 +106,7 @@ UPDATE {table}
 SET {update.field} = '{update.value}'
 WHERE {cond}
 """
-    connection_string = (
-        f"host={db_config['host']} "
-        f"port={db_config['port']} "
-        f"dbname={db_name} "
-        f"user={db_config['username']} "
-        f"password={db_config['password']}"
-    )
-    print(connection_string)
+    connection_string = get_db_connection_string(db_config)
     with psycopg.connect(  # pylint: disable=E1129
         connection_string,
         autocommit=True,

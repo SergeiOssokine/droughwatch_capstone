@@ -1,3 +1,8 @@
+"""
+This module contains the code that performs computes metrics on the
+predictions using Evidently for data drift.
+"""
+
 import datetime
 import json
 import os
@@ -8,7 +13,14 @@ from typing import Any, Dict, Union
 import awswrangler as wr
 import pandas as pd
 import psycopg
-from db_helper import get_credentials, prep_db
+from db_helper import (
+    DROUGHTWATCH_DB,
+    LEDGER,
+    METRICS,
+    get_credentials,
+    get_db_connection_string,
+    prep_db,
+)
 from evidently import ColumnMapping
 from evidently.metrics import (
     ColumnDriftMetric,
@@ -19,9 +31,6 @@ from evidently.report import Report
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
 
-DROUGHTWATCH_DB = "droughtwatch"
-LEDGER = "ledger"
-METRICS = "metrics"
 
 CREATE_TABLE_STATEMENT = """
 create table if not exists metrics(
@@ -42,7 +51,9 @@ column_mapping = ColumnMapping(
 )
 
 
-def insert_row_into_table(curr: psycopg.Cursor, row: Dict[str, Any], table_name: str):
+def insert_row_into_table(
+    curr: psycopg.Cursor, row: Dict[str, Any], table_name: str
+) -> None:
     """Insert a given row into the PostgreSQL table
 
     Args:
@@ -116,18 +127,18 @@ def compute_metrics(
     return metrics
 
 
-def get_new_predictions(db_config: Dict[str, str | int | float]) -> set:
+def get_new_predictions(connection_string: str) -> set:
     """Find all prediction files that no metrics computed by comparing
     the ledger and metrics tables.
 
     Args:
-        db_config (Dict[str, str  |  int  |  float]): Database config
+        connection_string (str): String to connect to postgres db
 
     Returns:
         set: The files that have not been observed
     """
     with psycopg.connect(  # pylint: disable=E1129
-        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        connection_string,
         autocommit=True,
     ) as conn:
         df_ledger = pd.read_sql(f'select * from "{LEDGER}"', conn)
@@ -138,10 +149,22 @@ def get_new_predictions(db_config: Dict[str, str | int | float]) -> set:
         return new_items
 
 
-def lambda_handler(event, context):
+def lambda_handler(event, context):  # pylint: disable=unused-argument
+    """Lambda handler for model observability. Performs the following
+    actions:
+
+    - Creates the metrics table, if it doesn't exist
+    - Finds all predictions files that are not in the metrics table
+    - Loops over them, compute metrics and write those to metrics table
+    Args:
+        event
+        context
+
+    Returns:
+        Dict[str,Any]:The body of the response in json form
+    """
     try:
-        ev = event["body"]
-        bucket_name = ev["data_bucket_name"]
+        bucket_name = event["body"]["data_bucket_name"]
 
         if AWS_ENDPOINT_URL is not None:
             wr.config.s3_endpoint_url = AWS_ENDPOINT_URL
@@ -150,14 +173,12 @@ def lambda_handler(event, context):
         db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
 
         prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
-        host = db_config["host"]
-        user = db_config["username"]
-        port = db_config["port"]
-        password = db_config["password"]
+
+        connection_string = get_db_connection_string(db_config)
         # We get the unobserved cases
-        predictions_list = get_new_predictions(db_config)
+        predictions_list = get_new_predictions(connection_string)
         with psycopg.connect(  # pylint: disable=E1129
-            f"host={host} port={port} user={user} dbname={DROUGHTWATCH_DB} password={password}",
+            connection_string,
             autocommit=True,
         ) as conn:
             for prediction in predictions_list:

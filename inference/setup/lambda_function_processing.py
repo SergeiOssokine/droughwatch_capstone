@@ -1,3 +1,8 @@
+"""
+This module contains the code that computes metrics on
+the model predictions for model observability.
+"""
+
 import json
 import os
 import tempfile
@@ -7,12 +12,19 @@ from typing import Dict, List
 import boto3
 import pandas as pd
 import psycopg
-from db_helper import SqlUpdate, get_credentials, prep_db, update_table
+from db_helper import (
+    DROUGHTWATCH_DB,
+    LEDGER,
+    SqlUpdate,
+    get_credentials,
+    get_db_connection_string,
+    prep_db,
+    update_table,
+)
 from parse_data import process_one_dataset
 
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
-DROUGHTWATCH_DB = "droughtwatch"
-LEDGER = "ledger"
+
 
 CREATE_TABLE_STATEMENT = """
 create table if not exists ledger(
@@ -61,8 +73,9 @@ def prep_ledger(
     """
     fields = "md5sum, raw_path"
     s3_resource = boto3.resource("s3", endpoint_url=AWS_ENDPOINT_URL)
+    connection_string = get_db_connection_string(db_config)
     with psycopg.connect(  # pylint: disable=E1129
-        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        connection_string,
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)
@@ -80,7 +93,23 @@ def prep_ledger(
 
 
 def lambda_handler(event, context):  # pylint: disable=unused-argument
-    """The processing lambda handler"""
+    """Lambda handler for data processing. Performs the following
+    actions:
+
+    - Creates the ledger table, if it doesn't exist
+    - Finds all raw files that don't have corresponding processed files
+    - Loops over them and processes them
+    - Saves the processed files back to S3
+    - Updates the ledger table to indicate which files have been
+    processed
+
+    Args:
+        event
+        context
+
+    Returns:
+        Dict[str,Any]:The body of the response in json form
+    """
     try:
         db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
         prep_db(db_config, DROUGHTWATCH_DB, CREATE_TABLE_STATEMENT)
@@ -122,7 +151,7 @@ def lambda_handler(event, context):  # pylint: disable=unused-argument
             # We managed to process things, let's update the ledger for corresponding item
             u = SqlUpdate("processed_path", processed_path)
             cond = f"raw_path = '{key}'"
-            update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
+            update_table("ledger", u, cond, db_config)
 
         return {"statusCode": 200, "body": event}
     except Exception as e:  # pylint: disable=W0718

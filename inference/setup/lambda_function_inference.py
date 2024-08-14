@@ -16,13 +16,18 @@ import pandas as pd
 import parse_data
 import psycopg
 import tensorflow as tf
-from db_helper import SqlUpdate, get_credentials, update_table
+from db_helper import (
+    LEDGER,
+    SqlUpdate,
+    get_credentials,
+    get_db_connection_string,
+    update_table,
+)
 from omegaconf import DictConfig, OmegaConf
 
 # In case we are running on localstack
 AWS_ENDPOINT_URL = os.getenv("aws_endpoint_url")
-DROUGHTWATCH_DB = "droughtwatch"
-LEDGER = "ledger"
+
 
 # A list of all possible features that can appear in a processed dataset
 features_inference = {
@@ -181,7 +186,7 @@ def package_predictions(
     return df
 
 
-def get_new_cases(db_config: Dict[str, str | int | float]) -> List[str]:
+def get_new_cases(connection_string: str) -> List[str]:
     """Find all cases where the processed data exists but no predictions
     are available.
 
@@ -192,7 +197,7 @@ def get_new_cases(db_config: Dict[str, str | int | float]) -> List[str]:
         List[str]: Names of all the processed files with no predictions
     """
     with psycopg.connect(  # pylint: disable=E1129
-        f"host={db_config['host']} port={db_config['port']} dbname={DROUGHTWATCH_DB} user={db_config['username']} password={db_config['password']}",
+        connection_string,
         autocommit=True,
     ) as conn:
         df = pd.read_sql(f'select * from "{LEDGER}"', conn)
@@ -200,12 +205,13 @@ def get_new_cases(db_config: Dict[str, str | int | float]) -> List[str]:
     return new_cases["processed_path"].values
 
 
-def lambda_handler(event, context) -> Dict[str, Any]:
+def lambda_handler(event, context) -> Dict[str, Any]:  # pylint: disable=unused-argument
     """Lambda handler for inference. Performs the following actions:
-    - Find all processed files with no predictions
+
+    - Finds all processed files with no predictions
     - Loops over them and runs the model
     - Saves the predictions back to S3
-    - Updates the ledger DB to indicate which files have been
+    - Updates the ledger table to indicate which files have been
     processed
 
     Args:
@@ -230,10 +236,10 @@ def lambda_handler(event, context) -> Dict[str, Any]:
 
         # Get new cases from ledger database
         db_config = get_credentials(endpoint_url=AWS_ENDPOINT_URL)
-        new_cases = get_new_cases(db_config)
+        connection_string = get_db_connection_string(db_config)
 
         # For every case that does not have predictions, run the model
-        for key in new_cases:
+        for key in get_new_cases(connection_string):
             name = os.path.basename(key)
             base_dir = os.path.dirname(key)
             with tempfile.TemporaryDirectory() as tmpdirname:
@@ -252,27 +258,26 @@ def lambda_handler(event, context) -> Dict[str, Any]:
                 )
                 # Get the results and write them back to s3
                 inf_res, ids = run_inference(model, dset)
-                df = package_predictions(inf_res, ids)
                 predictions_path = os.path.join(base_dir, "predictions.parquet")
                 wr.s3.to_parquet(
-                    df=df,
+                    df=package_predictions(inf_res, ids),
                     path=f"s3://{data_bucket_name}/{predictions_path}",
                     compression=None,
                 )
             # Update the ledger, recording that this file has predictions
             u = SqlUpdate("predictions_path", predictions_path)
             cond = f"processed_path='{key}'"
-            update_table("ledger", DROUGHTWATCH_DB, u, cond, db_config)
+            update_table("ledger", u, cond, db_config)
         # Return a code for success and pass on the input event
         return {"statusCode": 200, "body": ev}
     except Exception as e:  # pylint: disable=W0718
         # Something has gone wrong, capture the traceback
-        tb_string = traceback.format_exc()
-        print(tb_string)
         # Make sure to return the exception and traceback in the response
         return {
             "statusCode": 500,
-            "body": json.dumps({"Exception": str(e), "Traceback": tb_string}),
+            "body": json.dumps(
+                {"Exception": str(e), "Traceback": traceback.format_exc()}
+            ),
         }
 
 
