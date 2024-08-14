@@ -211,6 +211,8 @@ To be able to visualize metrics in a nice grafana dashboard, two more short step
 ```bash
 bash inference/observability/create_rds_tunnel.sh /path/to/your/PRIVATE/key
 ```
+(If you have been following the guide exactly, this path would be `inference/setup/tf/modules/ec2/id_ed25519`.)
+
 This will produce a command that looks like the following
 ```
 ssh -i /home/sergei/.ssh/id_ed25519 ubuntu@i-0be7a30f923f2d693 -o ServerAliveInterval=30 -o ProxyCommand='aws ec2-instance-connect open-tunnel --instance-id i-0be7a30f923f2d693' -L 5432:droughtwatch.cbesic40wlrm.us-east-1.rds.amazonaws.com:5432
@@ -223,6 +225,7 @@ make setup_inference_observability
 ```
 
 This will do the following:
+
 1. Launch a docker container running grafana
 2. Use terraform to provision a dashboard on this grafana instance. Terraform will ask for the same database username and password again.
 
