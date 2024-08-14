@@ -1,8 +1,16 @@
+"""
+This module contains test of various functions parsing and processing
+TFRecord files.
+"""
+
 import os
 
 from deepdiff import DeepDiff
 
-from training.airflow.includes.parse_data import add_derived_features, read_raw_tfrecord
+from training.airflow.includes.parse_data import (  # pylint: disable=no-name-in-module
+    add_derived_features,
+    read_raw_tfrecord,
+)
 
 mpath = os.path.dirname(__file__)
 
@@ -28,9 +36,13 @@ def test_parse_raw_record():
 
 
 def test_add_derived_features():
+    """
+    Test that the derived features are correctly added to the processed
+    dataset
+    """
     raw_dataset = read_raw_tfrecord(raw_record)
     updated_dataset = raw_dataset.map(add_derived_features)
     assert len(updated_dataset.element_spec) == 2
     feats = updated_dataset.element_spec[0].keys()
-    for feature in ['NDVI', 'NDMI', 'EVI']:
+    for feature in ["NDVI", "NDMI", "EVI"]:
         assert feature in feats

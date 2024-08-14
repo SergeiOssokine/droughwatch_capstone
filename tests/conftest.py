@@ -1,3 +1,7 @@
+"""
+Set the PYTHONPATH for unit tests
+"""
+
 import os
 import sys
 
