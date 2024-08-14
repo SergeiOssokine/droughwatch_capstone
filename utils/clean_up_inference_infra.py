@@ -1,3 +1,11 @@
+"""
+Cleans up inference infrastructure that was *not* provisioned
+by terraform:
+
+- the S3 model registry bucket
+- the ECR repo with the model
+"""
+
 import logging
 import os
 
